@@ -1,0 +1,59 @@
+apiVersion: core.openeverest.io/v1alpha1
+kind: Provider
+metadata:
+  name: {{ .Values.provider.name }}
+  labels:
+    {{- include "provider-percona-server-mongodb.labels" . | nindent 4 }}
+spec:
+  componentTypes:
+    backup:
+      versions:
+        - default: true
+          image: percona/percona-backup-mongodb:2.9.1
+          version: 2.9.1
+    mongod:
+      versions:
+        - image: percona/percona-server-mongodb:6.0.19-16-multi
+          version: 6.0.19-16
+        - image: percona/percona-server-mongodb:6.0.21-18
+          version: 6.0.21-18
+        - image: percona/percona-server-mongodb:7.0.18-11
+          version: 7.0.18-11
+        - image: percona/percona-server-mongodb:8.0.4-1-multi
+          version: 8.0.4-1
+        - default: true
+          image: percona/percona-server-mongodb:8.0.8-3
+          version: 8.0.8-3
+    pmm:
+      versions:
+        - default: true
+          image: percona/pmm-server:2.44.1
+          version: 2.44.1
+  components:
+    backupAgent:
+      type: backup
+    configServer:
+      type: mongod
+    engine:
+      type: mongod
+    monitoring:
+      type: pmm
+    proxy:
+      type: mongod
+  topologies:
+    replicaSet:
+      components:
+        backupAgent:
+          optional: true
+        engine: {}
+        monitoring:
+          optional: true
+    sharded:
+      components:
+        backupAgent:
+          optional: true
+        configServer: {}
+        engine: {}
+        monitoring:
+          optional: true
+        proxy: {}

@@ -1,0 +1,89 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "provider-percona-server-mongodb.fullname" . }}
+  labels:
+    {{- include "provider-percona-server-mongodb.labels" . | nindent 4 }}
+rules:
+  # OpenEverest Instance and Provider resources
+  - apiGroups:
+      - core.openeverest.io
+    resources:
+      - instances
+      - instances/status
+      - instances/finalizers
+      - providers
+      - providers/status
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  # Percona Server MongoDB Operator resources
+  - apiGroups:
+      - psmdb.percona.com
+    resources:
+      - perconaservermongodbs
+      - perconaservermongodbs/status
+      - perconaservermongodbs/finalizers
+      - perconaservermongodbbackups
+      - perconaservermongodbbackups/status
+      - perconaservermongodbrestores
+      - perconaservermongodbrestores/status
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  # Core Kubernetes resources needed by the provider
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+      - configmaps
+      - services
+      - persistentvolumeclaims
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+  # Coordination for leader election
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+{{- end }}
