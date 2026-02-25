@@ -9,7 +9,9 @@ spec:
     backup:
       versions:
         - default: true
-          image: percona/percona-backup-mongodb:2.9.1
+          image: percona/percona-backup-mongodb:2.11.0
+          version: 2.11.0
+        - image: percona/percona-backup-mongodb:2.9.1
           version: 2.9.1
     mongod:
       versions:
@@ -21,9 +23,11 @@ spec:
           version: 7.0.18-11
         - image: percona/percona-server-mongodb:8.0.4-1-multi
           version: 8.0.4-1
-        - default: true
-          image: percona/percona-server-mongodb:8.0.8-3
+        - image: percona/percona-server-mongodb:8.0.8-3
           version: 8.0.8-3
+        - default: true
+          image: percona/percona-server-mongodb:8.0.12-4
+          version: 8.0.12-4
     pmm:
       versions:
         - default: true
@@ -57,3 +61,136 @@ spec:
         monitoring:
           optional: true
         proxy: {}
+      configSchema:
+        properties:
+          numShards:
+            format: int32
+            type: integer
+        type: object
+  uiSchema:
+    replicaSet:
+      sections:
+        basicInfo:
+          components:
+            version:
+              fieldParams:
+                label: Database Version
+              path: spec.components.engine.version
+              uiType: select
+          description: Provide the basic information for your new database.
+          label: Basic Information
+        resources:
+          components:
+            numberOfNodes:
+              fieldParams:
+                label: Number of nodes
+              path: spec.components.engine.replicas
+              uiType: number
+              validation:
+                max: 7
+                min: 1
+            resources:
+              components:
+                cpu:
+                  fieldParams:
+                    label: CPU
+                  path: spec.components.engine.resources.requests.cpu
+                  uiType: number
+                  validation:
+                    max: 10
+                    min: 1
+                disk:
+                  fieldParams:
+                    label: Disk
+                  path: spec.components.engine.storage.size
+                  uiType: number
+                  validation:
+                    max: 100
+                    min: 10
+                memory:
+                  fieldParams:
+                    label: Memory
+                  path: spec.components.engine.resources.requests.memory
+                  uiType: number
+                  validation:
+                    max: 10
+                    min: 1
+              groupType: line
+              uiType: group
+          description: Configure the resources your new database will have access to.
+          label: Resources
+      sectionsOrder:
+        - basicInfo
+        - resources
+    sharded:
+      sections:
+        basicInfo:
+          components:
+            version:
+              fieldParams:
+                label: Database Version
+              path: spec.components.engine.version
+              uiType: select
+          description: Provide the basic information for your new database.
+          label: Basic Information
+        resources:
+          components:
+            nodesResources:
+              components:
+                cpu:
+                  fieldParams:
+                    label: CPU
+                  path: spec.components.engine.resources.requests.cpu
+                  uiType: number
+                  validation:
+                    max: 10
+                    min: 1
+                disk:
+                  fieldParams:
+                    label: Disk
+                  path: spec.components.engine.storage.size
+                  uiType: number
+                  validation:
+                    max: 100
+                    min: 10
+                memory:
+                  fieldParams:
+                    label: Memory
+                  path: spec.components.engine.resources.requests.memory
+                  uiType: number
+                  validation:
+                    max: 10
+                    min: 1
+              groupType: line
+              uiType: group
+            numberOfConfigServers:
+              fieldParams:
+                defaultValue: 3
+                label: Number of configuration servers
+              path: spec.components.configServer.replicas
+              uiType: number
+            numberOfNodes:
+              fieldParams:
+                label: Number of nodes per shard
+              path: spec.components.engine.replicas
+              uiType: number
+            numberOfRouters:
+              fieldParams:
+                label: Number of routers
+              path: spec.components.proxy.replicas
+              uiType: number
+            shards:
+              fieldParams:
+                defaultValue: 2
+                label: Number of shards
+              path: spec.topology.config.numShards
+              uiType: number
+          componentsOrder:
+            - shards
+            - numberOfNodes
+            - numberOfConfigServers
+          description: Configure the resources for your sharded cluster.
+          label: Resources
+      sectionsOrder:
+        - basicInfo
+        - resources
