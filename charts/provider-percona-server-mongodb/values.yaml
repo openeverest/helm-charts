@@ -100,7 +100,7 @@ affinity: {}
 
 provider:
   # -- The name to register for the Provider custom resource
-  name: percona-server-mongodb-operator
+  name: percona-server-mongodb
 
 # -- Additional environment variables to set on the provider container
 extraEnv: []
