@@ -68,14 +68,19 @@ link-crds:
 		echo "Linked $$crd → crds/"; \
 	done
 
-EVEREST_REPO_URL ?= https://github.com/openeverest/openeverest-operator
+EVEREST_OPERATOR_REPO_URL ?= https://github.com/openeverest/openeverest-operator
+OPENEVEREST_REPO_URL ?= https://github.com/openeverest/openeverest
 CRD_DIR ?= config/crd
 CRD_VERSION ?= main
+# FIXME: this is temporary until we have a split between v1 and v2
+OPENEVEREST_CRD_VERSION ?= v2
 .PHONY: crds-gen
 crds-gen:
-	EVEREST_REPO_URL=$(EVEREST_REPO_URL) \
+	EVEREST_OPERATOR_REPO_URL=$(EVEREST_OPERATOR_REPO_URL) \
+	OPENEVEREST_REPO_URL=$(OPENEVEREST_REPO_URL) \
 	CRD_DIR=$(CRD_DIR) \
 	CRD_VERSION=$(CRD_VERSION) \
+	OPENEVEREST_CRD_VERSION=$(OPENEVEREST_CRD_VERSION) \
 	VERSION=$(VERSION) \
 	CRD_SUBCHART_DIR=$(PWD)/charts/everest-crds \
 	$(MAKE) -C charts/everest-crds crds-gen
@@ -84,6 +89,6 @@ crds-gen:
 prepare-pr:
 	$(MAKE) deps
 	$(MAKE) docs-gen
-	EVEREST_REPO_URL=$(EVEREST_REPO_URL) \
+	EVEREST_OPERATOR_REPO_URL=$(EVEREST_OPERATOR_REPO_URL) \
 	CRD_DIR=$(CRD_DIR) \
 	CRD_VERSION=$(CRD_VERSION) $(MAKE) crds-gen link-crds
