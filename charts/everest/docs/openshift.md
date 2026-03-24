@@ -9,7 +9,7 @@ The OpenEverest Helm chart can be installed on OpenShift with some additional co
 Run the following command to install Everest with OpenShift compatibility enabled:
 
 ```sh
-helm install everest-core openeverest/everest \
+helm install everest-core openeverest/openeverest \
     --namespace everest-system \
     --create-namespace \
     --set compatibility.openshift=true \

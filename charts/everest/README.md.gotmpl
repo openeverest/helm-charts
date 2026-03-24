@@ -20,7 +20,7 @@ helm repo update
 
 ### 2. Install Everest
 ```sh
-helm install everest-core openeverest/everest \
+helm install everest-core openeverest/openeverest \
     --namespace everest-system \
     --create-namespace
 ```
@@ -143,7 +143,7 @@ helm upgrade --install everest-crds \
 
 Upgrade the Helm release for Everest (core components):
 ```sh
-helm upgrade everest-core openeverest/everest --namespace everest-system --version $(VERSION)
+helm upgrade everest-core openeverest/openeverest --namespace everest-system --version $(VERSION)
 ```
 
 Upgrade the Helm release for the database namespace (if applicable):
