@@ -1,9 +1,13 @@
 {{- if .Values.controller.enabled }}
+# This file is auto-generated from the openeverest repo's config/rbac/ via kustomize.
+# Do not edit manually. Run: make controller-manifests-gen
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: openeverest
   name: everest-controller-leader-election-role
-  namespace: {{ include "everest.namespace" . }}
 rules:
 - apiGroups:
   - ""
@@ -15,8 +19,8 @@ rules:
   - watch
   - create
   - update
-  - delete
   - patch
+  - delete
 - apiGroups:
   - coordination.k8s.io
   resources:
@@ -27,8 +31,8 @@ rules:
   - watch
   - create
   - update
-  - delete
   - patch
+  - delete
 - apiGroups:
   - ""
   resources:
