@@ -71,6 +71,11 @@ spec:
       restartPolicy: Always
       securityContext:
         runAsNonRoot: true
+        # 65532 is the standard non-root UID used by distroless/nonroot images.
+        # The manager image is built FROM scratch with no USER directive, so it
+        # defaults to root (UID 0). Setting runAsUser here explicitly overrides
+        # that default to satisfy the runAsNonRoot constraint.
+        runAsUser: 65532
       serviceAccountName: everest-controller-manager
       terminationGracePeriodSeconds: 10
 {{- end }}
