@@ -34,6 +34,7 @@ spec:
         {{- end }}
         - --metrics-bind-address={{ .Values.controller.metricsBindAddress }}
         - --health-probe-bind-address={{ .Values.controller.healthProbeBindAddress }}
+        - --webhook-cert-path=/tmp/k8s-webhook-server/serving-certs
         ports:
         - containerPort: 8081
           name: health
@@ -67,6 +68,10 @@ spec:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: everest-controller-webhook-server-cert
+          readOnly: true
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       securityContext:
@@ -78,4 +83,8 @@ spec:
         runAsUser: 65532
       serviceAccountName: everest-controller-manager
       terminationGracePeriodSeconds: 10
+      volumes:
+      - name: everest-controller-webhook-server-cert
+        secret:
+          secretName: everest-controller-webhook-server-cert
 {{- end }}

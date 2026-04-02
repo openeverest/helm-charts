@@ -212,6 +212,20 @@ controller:
   #   value: value1
   # - name: key2
   #   value: value2
+  webhook:
+    # -- Certificates to use for the webhook server.
+    # The values must be base64 encoded.
+    # If unset, uses self-signed certificates.
+    certs:
+      tls.key: ""
+      tls.crt: ""
+      ca.crt: ""
+    # -- If set to true, preserves existing TLS Certificate Secrets during upgrades.
+    # This setting is ignored if certificates are explicitly provided in operator.webhook.certs,
+    # in which case the specified certificates are used instead.
+    # This setting has no effect during installation.
+    # @default -- true
+    preserveTLSCerts: true
 dataImporters:
   # -- Settings for the Percona PostgreSQL Operator data importer.
   perconaPGOperator:

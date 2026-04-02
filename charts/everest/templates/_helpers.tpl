@@ -140,3 +140,34 @@ tls.crt: {{ $cert.Cert | b64enc }}
 ca.crt: {{ $ca.Cert | b64enc }}
 {{- end }}
 {{- end }}
+
+{{/*
+TLS certs for everest-controller
+*/}}
+
+{{- define "everestController.tlsCerts" -}}
+{{- $currentSecret := lookup "v1" "Secret" (include "everest.namespace" .) "everest-controller-webhook-server-cert" -}}
+{{- $tlsCerts := .Values.controller.webhook.certs }}
+
+{{- if (and (get $tlsCerts "tls.key" ) (get $tlsCerts "tls.crt") (get $tlsCerts "ca.crt") )}}
+tls.key: {{ index $tlsCerts "tls.key" }}
+tls.crt: {{ index $tlsCerts "tls.crt" }}
+ca.crt: {{ index $tlsCerts "ca.crt" }}
+
+{{- else if (and .Release.IsUpgrade .Values.controller.webhook.preserveTLSCerts $currentSecret ) }}
+tls.key: {{ index $currentSecret.data "tls.key" }}
+tls.crt: {{ index $currentSecret.data "tls.crt" }}
+ca.crt: {{ index $currentSecret.data "ca.crt" }}
+
+{{- else }}
+{{- $svcName := printf "everest-controller-webhook-service" }}
+{{- $svcNameWithNS := ( printf "%s.%s" $svcName (include "everest.namespace" .) ) }}
+{{- $fullName := ( printf "%s.svc" $svcNameWithNS ) }}
+{{- $altNames := list $svcName $svcNameWithNS $fullName }}
+{{- $ca := genCA $svcName 3650 }}
+{{- $cert := genSignedCert $fullName nil $altNames 3650 $ca }}
+tls.key: {{ $cert.Key | b64enc }}
+tls.crt: {{ $cert.Cert | b64enc }}
+ca.crt: {{ $ca.Cert | b64enc }}
+{{- end }}
+{{- end }}

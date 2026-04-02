@@ -3,8 +3,8 @@ kind: Service
 metadata:
   labels:
     app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: everest-operator
-  name: everest-operator-webhook-service
+    app.kubernetes.io/name: everest-controller
+  name: everest-controller-webhook-service
   namespace: {{ include "everest.namespace" . }}
 spec:
   ports:
@@ -12,4 +12,4 @@ spec:
     protocol: TCP
     targetPort: 9443
   selector:
-    app: everest-operator
+    app: everest-controller
