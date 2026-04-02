@@ -9,8 +9,8 @@ webhooks:
 - admissionReviewVersions:
   - v1
   clientConfig:
+    caBundle: {{ index $tls "ca.crt" }}
     service:
-      caBundle: {{ index $tls "ca.crt" }}
       name: everest-controller-webhook-service
       namespace: {{ include "everest.namespace" . }}
       path: /validate-monitoring-openeverest-io-v1alpha1-monitoringconfig
