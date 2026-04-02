@@ -1,5 +1,5 @@
-{{ $tls := fromYaml (include "everestController.tlsCerts" .) }}
 {{- if .Values.controller.enabled }}
+{{ $tls := fromYaml (include "everestController.tlsCerts" .) }}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
