@@ -2,6 +2,33 @@
 {{ $tls := fromYaml (include "everestController.tlsCerts" .) }}
 ---
 apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: everest-controller-mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    caBundle: {{ index $tls "ca.crt" }}
+    service:
+      name: everest-controller-webhook-service
+      namespace: {{ include "everest.namespace" . }}
+      path: /mutate-monitoring-openeverest-io-v1alpha1-monitoringconfig
+  failurePolicy: Fail
+  name: mmonitoringconfig-v1alpha1.monitoring.openeverest.io
+  rules:
+  - apiGroups:
+    - monitoring.openeverest.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - monitoringconfigs
+  sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   name: everest-controller-validating-webhook-configuration
