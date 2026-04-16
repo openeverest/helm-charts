@@ -1,0 +1,10 @@
+# Artifact Hub repository metadata file
+# Used to become verified publisher - https://artifacthub.io/docs/topics/repositories/#verified-publisher
+
+# Repository ID from Artifact Hub
+repositoryID: 1a1e78f0-2b03-47d0-98b1-ad3173de17ee
+
+# Owners (optional, used to claim repository ownership)
+owners:
+  - name: Sergey Pronin
+    email: sp@solanica.io
