@@ -13,14 +13,14 @@ webhooks:
     service:
       name: everest-controller-webhook-service
       namespace: {{ include "everest.namespace" . }}
-      path: /validate-monitoring-openeverest-io-v1alpha1-monitoringconfig
+      path: /validate-monitoring-openeverest-io-v1alpha2-monitoringconfig
   failurePolicy: Fail
-  name: vmonitoringconfig-v1alpha1.monitoring.openeverest.io
+  name: vmonitoringconfig-v1alpha2.monitoring.openeverest.io
   rules:
   - apiGroups:
     - monitoring.openeverest.io
     apiVersions:
-    - v1alpha1
+    - v1alpha2
     operations:
     - CREATE
     - UPDATE
