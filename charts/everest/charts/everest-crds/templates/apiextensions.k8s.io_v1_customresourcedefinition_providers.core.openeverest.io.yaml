@@ -6,7 +6,7 @@ metadata:
   name: providers.core.openeverest.io
   labels:
     everest.percona.com/crd: "true"
-    everest.percona.com/version: 0.0.0
+    everest.percona.com/version: 1.14.0
 spec:
   group: core.openeverest.io
   names:
