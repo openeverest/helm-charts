@@ -30,7 +30,7 @@ Allow overriding OLM namespace
 {{- if .Values.compatibility.openshift }}
 {{- "openshift-marketplace" }}
 {{- else }}
-{{- .Values.olm.namespaceOverride }}
+{{- .Values.global.olmNamespace | default .Values.olm.namespaceOverride }}
 {{- end }}
 {{- end }}
 

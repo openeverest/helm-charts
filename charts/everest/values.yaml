@@ -1,3 +1,8 @@
+# -- Global values shared across parent chart and subcharts.
+global:
+  # -- OLM namespace used for CatalogSource and Subscription sourceNamespace.
+  # Changing this value automatically propagates to all subcharts.
+  olmNamespace: "everest-olm"
 # -- Configuration for Helm chart hooks.
 hooks:
   # -- Default image to use for the Helm chart hooks job.

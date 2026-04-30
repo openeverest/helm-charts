@@ -176,6 +176,8 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | dataImporters.perconaPXCOperator.enabled | bool | `true` | If set, installs the Percona PXC Operator data importer. |
 | dbNamespace.enabled | bool | `true` | If set, deploy the database operators in `everest` namespace. The namespace may be overridden by setting `dbNamespace.namespaceOverride`. |
 | dbNamespace.namespaceOverride | string | `"everest"` | If `dbNamespace.enabled` is `true`, deploy the database operators in this namespace. |
+| global | object | `{"olmNamespace":"everest-olm"}` | Global values shared across parent chart and subcharts. |
+| global.olmNamespace | string | `"everest-olm"` | OLM namespace used for CatalogSource and Subscription sourceNamespace. Changing this value automatically propagates to all subcharts. |
 | hooks | object | `{"image":"percona/everest-helmtools:0.0.1","lbcCleanup":{},"pspCleanup":{},"upgradeChecks":{"image":"ghcr.io/openeverest/everestctl"}}` | Configuration for Helm chart hooks. |
 | hooks.image | string |  | Default image to use for the Helm chart hooks job. |
 | hooks.lbcCleanup | object | `{}` | Configuration for LoadBalancerConfig clean-up hook. |

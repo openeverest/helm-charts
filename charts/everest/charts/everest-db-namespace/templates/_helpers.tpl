@@ -12,7 +12,7 @@ Allow overriding OLM namespace
 {{- if .Values.compatibility.openshift }}
 {{- "openshift-marketplace" }}
 {{- else }}
-{{- .Values.olm.namespace }}
+{{- .Values.global.olmNamespace | default .Values.olm.namespace }}
 {{- end }}
 {{- end }}
 
