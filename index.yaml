@@ -351,6 +351,85 @@ entries:
           url: https://openeverest.io/documentation/current/
       helm.sh/release-max-history: "5"
     apiVersion: v2
+    appVersion: 1.15.0
+    created: "2026-05-01T14:09:31.978729015Z"
+    dependencies:
+    - name: common
+      repository: file://charts/common
+      version: 0.0.*
+    - alias: dbNamespace
+      condition: dbNamespace.enabled
+      name: everest-db-namespace
+      repository: file://charts/everest-db-namespace
+      version: 1.15.0
+    - condition: kube-state-metrics.enabled
+      name: kube-state-metrics
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 5.27.0
+    - alias: monitoring
+      condition: monitoring.enabled
+      name: victoria-metrics-operator
+      repository: https://victoriametrics.github.io/helm-charts
+      version: 0.43.0
+    - condition: pmm.enabled
+      name: pmm
+      repository: https://percona.github.io/percona-helm-charts
+      version: 1.3.*
+    - condition: pmm3.enabled
+      name: pmm3
+      repository: file://charts/pmm3
+      version: 0.0.*
+    - condition: everest-crds.enabled
+      name: everest-crds
+      repository: file://charts/everest-crds
+      version: 1.15.0
+    - alias: olm
+      condition: olm.install
+      name: operator-lifecycle-manager
+      repository: https://percona.github.io/operator-lifecycle-manager
+      version: 0.1.*
+    description: A cloud-native database platform
+    digest: 59b70f09a500366a5a6fa1ff3b25523ada9ba7d4d204934b9b160526086f2fdf
+    home: https://openeverest.io
+    icon: https://github.com/openeverest/.github/raw/main/logo/logo-horizontal-full-color-white-min.png
+    keywords:
+    - kubernetes
+    - database
+    - db
+    - postgres
+    - postgresql
+    - mysql
+    - mongodb
+    - operator
+    - percona
+    - cloud-native
+    - dbaas
+    - database-as-a-service
+    - backup
+    - restore
+    - monitoring
+    - everest
+    kubeVersion: '>= 1.27.0-0'
+    maintainers:
+    - email: mayank.shah@percona.com
+      name: mayankshah1607
+    - email: oksana.grishchenko@percona.com
+      name: oksana-grishchenko
+    - email: diogo.recharte@percona.com
+      name: recharte
+    - email: sp@solanica.io
+      name: spron-in
+    name: openeverest
+    type: application
+    urls:
+    - https://github.com/openeverest/helm-charts/releases/download/openeverest-1.15.0/openeverest-1.15.0.tgz
+    version: 1.15.0
+  - annotations:
+      artifacthub.io/links: |
+        - name: Documentation
+          url: https://openeverest.io/documentation/current/
+      helm.sh/release-max-history: "5"
+    apiVersion: v2
     appVersion: 1.15.0-rc1
     created: "2026-04-28T14:36:53.628574035Z"
     dependencies:
@@ -595,4 +674,4 @@ entries:
     urls:
     - openeverest-1.13.1.tgz
     version: 1.13.1
-generated: "2026-04-28T14:37:01.728116542Z"
+generated: "2026-05-01T14:09:31.97877984Z"
