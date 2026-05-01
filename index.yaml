@@ -172,6 +172,25 @@ entries:
     version: 0.0.0
   everest-crds:
   - apiVersion: v2
+    appVersion: 1.15.1
+    created: "2026-05-01T19:28:19.003215797Z"
+    description: A Helm chart for Everest Custom Resource Definitions (CRDs).
+    digest: f4cf1f8580714e8ed1aa594696d3527f2c2035b93b86760327f72502fc9c0b40
+    maintainers:
+    - email: mayank.shah@percona.com
+      name: mayankshah1607
+    - email: oksana.grishchenko@percona.com
+      name: oksana-grishchenko
+    - email: diogo.recharte@percona.com
+      name: recharte
+    - email: maxim.kondratenko@percona.com
+      name: maxkondr
+    name: everest-crds
+    type: application
+    urls:
+    - https://github.com/openeverest/helm-charts/releases/download/everest-crds-1.15.1/everest-crds-1.15.1.tgz
+    version: 1.15.1
+  - apiVersion: v2
     appVersion: 1.15.1-rc1
     created: "2026-05-01T18:43:34.249199836Z"
     description: A Helm chart for Everest Custom Resource Definitions (CRDs).
@@ -286,6 +305,30 @@ entries:
     - everest-crds-1.13.1.tgz
     version: 1.13.1
   everest-db-namespace:
+  - apiVersion: v2
+    appVersion: 1.15.1
+    created: "2026-05-01T19:28:19.158880578Z"
+    dependencies:
+    - name: common
+      repository: file://../common
+      version: 0.0.*
+    description: A sub-chart for provisioning Everest DB namespaces.
+    digest: 89f3f0c73016b77a3c700f4521bcfaf931b8c0278436fe2d9145d7b49f657c61
+    kubeVersion: '>= 1.27.0-0'
+    maintainers:
+    - email: mayank.shah@percona.com
+      name: mayankshah1607
+    - email: oksana.grishchenko@percona.com
+      name: oksana-grishchenko
+    - email: diogo.recharte@percona.com
+      name: recharte
+    - email: maxim.kondratenko@percona.com
+      name: maxkondr
+    name: everest-db-namespace
+    type: application
+    urls:
+    - https://github.com/openeverest/helm-charts/releases/download/everest-db-namespace-1.15.1/everest-db-namespace-1.15.1.tgz
+    version: 1.15.1
   - apiVersion: v2
     appVersion: 1.15.1-rc1
     created: "2026-05-01T18:43:34.466758209Z"
@@ -918,4 +961,4 @@ entries:
     urls:
     - openeverest-1.13.1.tgz
     version: 1.13.1
-generated: "2026-05-01T19:28:13.149154297Z"
+generated: "2026-05-01T19:28:19.158974825Z"
