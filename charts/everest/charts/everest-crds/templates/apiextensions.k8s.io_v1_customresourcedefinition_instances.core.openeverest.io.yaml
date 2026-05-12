@@ -6,7 +6,7 @@ metadata:
   name: instances.core.openeverest.io
   labels:
     everest.percona.com/crd: "true"
-    everest.percona.com/version: 0.0.0
+    everest.percona.com/version: 1.14.0
 spec:
   group: core.openeverest.io
   names:
@@ -44,6 +44,153 @@ spec:
             spec:
               description: InstanceSpec defines the desired state of Instance
               properties:
+                backup:
+                  description: |-
+                    Backup configures the backup feature for this Instance. When enabled,
+                    the provider's reconciler is given the resolved BackupClass and storage
+                    list so it can configure the engine accordingly (sidecars, agent
+                    configuration, etc.). Required for ProviderManaged BackupClasses; Job
+                    classes do not need an entry here because they read directly from
+                    individual Backup CRs.
+                  properties:
+                    classRef:
+                      description: |-
+                        ClassRef references the BackupClass that the provider should use to
+                        configure the engine. The class must have ExecutionMode=ProviderManaged
+                        and list the Instance's provider in its SupportedProviders.
+                      properties:
+                        name:
+                          description: Name is the BackupClass name. BackupClasses are cluster-scoped.
+                          type: string
+                      required:
+                        - name
+                      type: object
+                    enabled:
+                      description: |-
+                        Enabled toggles the backup feature for this Instance. When false the
+                        runtime skips ConfigureBackup() and the rest of this struct is ignored.
+                      type: boolean
+                    storages:
+                      description: |-
+                        Storages registers BackupStorages on the engine. Each entry maps a
+                        logical name (visible to the engine and reused by Backup CRs via
+                        .spec.storageName) to a BackupStorage resource. Schedules and PITR are
+                        configured per storage via the nested .schedules and .pitr fields.
+                      items:
+                        description: |-
+                          InstanceBackupStorage registers a BackupStorage on the Instance and
+                          carries the backup policy (schedules, PITR) that targets it.
+                        properties:
+                          main:
+                            description: |-
+                              Main marks this storage as the engine's default. At most one storage
+                              per Instance may be marked main.
+                            type: boolean
+                          name:
+                            description: |-
+                              Name is the logical name the engine uses for this storage. It is also
+                              the value that Backup CRs target via .spec.storageName.
+                            maxLength: 63
+                            type: string
+                          pitr:
+                            description: |-
+                              PITR enables and configures point-in-time recovery writing to this
+                              storage. Requires the BackupClass to advertise PITR support via
+                              .spec.providerManaged. Engines that support only a single PITR stream
+                              (e.g. PSMDB, PXC) require at most one storage on the Instance to set
+                              .pitr.enabled=true; this is enforced by the provider, not by the
+                              core schema (PG legitimately archives WAL to every configured repo).
+                            properties:
+                              config:
+                                description: |-
+                                  Config holds provider-specific PITR options. The schema is defined by
+                                  the BackupClass via .spec.providerManaged.
+                                type: object
+                                x-kubernetes-preserve-unknown-fields: true
+                              enabled:
+                                description: Enabled toggles PITR for this storage.
+                                type: boolean
+                            required:
+                              - enabled
+                            type: object
+                          schedules:
+                            description: |-
+                              Schedules registers recurring backup tasks that write to this storage.
+                              Schedules produce Backup CRs (via the provider's mirroring loop) using
+                              the operator-native scheduler — the runtime never spawns CronJobs for
+                              ProviderManaged BackupClasses. Schedule names must be unique across
+                              all storages on the Instance.
+                            items:
+                              description: |-
+                                InstanceBackupSchedule configures a recurring backup task on the engine
+                                for the parent storage. The provider translates each schedule into the
+                                engine's native scheduler (e.g. PSMDB BackupTaskSpec, PXC
+                                PXCScheduledBackupSchedule, pgBackRest schedule). Operator-produced
+                                backups are mirrored back into Backup CRs by the provider, sharing the
+                                operator backup's name.
+                              properties:
+                                cron:
+                                  description: |-
+                                    Cron is a standard 5-field cron expression. The provider may reject
+                                    expressions the engine does not support.
+                                  minLength: 1
+                                  type: string
+                                enabled:
+                                  description: |-
+                                    Enabled toggles the schedule. A disabled schedule is removed from
+                                    the engine without losing its definition on the Instance.
+                                  type: boolean
+                                name:
+                                  description: |-
+                                    Name uniquely identifies the schedule. The provider uses it as the
+                                    schedule key on the engine and as the value of Backup.spec.scheduleName
+                                    on mirrored Backup CRs. Names must be unique across all storages on
+                                    the Instance.
+                                  maxLength: 63
+                                  minLength: 1
+                                  type: string
+                                retentionCopies:
+                                  description: |-
+                                    RetentionCopies is the number of recent backups to keep for this
+                                    schedule. Zero (or unset) means "keep all". Negative values are
+                                    rejected.
+                                  format: int32
+                                  minimum: 0
+                                  type: integer
+                              required:
+                                - cron
+                                - enabled
+                                - name
+                              type: object
+                            maxItems: 10
+                            type: array
+                          storageRef:
+                            description: StorageRef references a BackupStorage in the same namespace.
+                            properties:
+                              name:
+                                default: ""
+                                description: |-
+                                  Name of the referent.
+                                  This field is effectively required, but due to backwards compatibility is
+                                  allowed to be empty. Instances of this type with an empty value here are
+                                  almost certainly wrong.
+                                  More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                type: string
+                            type: object
+                            x-kubernetes-map-type: atomic
+                        required:
+                          - name
+                          - storageRef
+                        type: object
+                      maxItems: 10
+                      type: array
+                  required:
+                    - classRef
+                    - enabled
+                  type: object
+                  x-kubernetes-validations:
+                    - message: schedule names must be unique across all storages
+                      rule: '!has(self.storages) || self.storages.all(s1, !has(s1.schedules) || s1.schedules.all(sch1, self.storages.filter(s2, has(s2.schedules) && s2.schedules.exists(sch2, sch2.name == sch1.name)).size() <= 1 && s1.schedules.filter(sch2, sch2.name == sch1.name).size() == 1))'
                 components:
                   additionalProperties:
                     properties:
