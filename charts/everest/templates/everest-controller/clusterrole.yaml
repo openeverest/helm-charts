@@ -83,6 +83,58 @@ rules:
   - list
   - watch
 - apiGroups:
+  - core.openeverest.io
+  resources:
+  - plugininstallations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - core.openeverest.io
+  resources:
+  - plugininstallations/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - core.openeverest.io
+  resources:
+  - plugininstallations/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - core.openeverest.io
+  resources:
+  - plugins
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - core.openeverest.io
+  resources:
+  - plugins/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - core.openeverest.io
+  resources:
+  - plugins/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - monitoring.openeverest.io
   resources:
   - monitoringconfigs
