@@ -103,4 +103,4 @@ sync_file "*_serviceaccount_controller-manager.yaml" "serviceaccount.yaml"
 
 echo ""
 echo "Controller RBAC sync complete. Files written to ${OUTPUT_DIR}/."
-echo "Note: deployment.yaml is NOT synced — it is maintained manually in the Helm chart."
+echo "Note: deployment.yaml is synced separately via the controller-deployment-gen target."

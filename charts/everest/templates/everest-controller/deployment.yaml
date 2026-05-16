@@ -1,11 +1,13 @@
 {{- if .Values.controller.enabled }}
+# This file is auto-generated from the openeverest repo's config/default/ via kustomize.
+# Do not edit manually. Run: make controller-deployment-gen
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: everest-controller
-  namespace: {{ include "everest.namespace" . }}
   labels:
     app: everest-controller
+  name: everest-controller
+  namespace: {{ include "everest.namespace" . }}
 spec:
   replicas: 1
   revisionHistoryLimit: 1
@@ -19,50 +21,52 @@ spec:
     type: RollingUpdate
   template:
     metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
       labels:
         app: everest-controller
     spec:
       containers:
-      - name: manager
-        image: {{ (default .Values.server.image .Values.controller.image) }}:{{ .Chart.AppVersion }}
-        imagePullPolicy: IfNotPresent
-        command:
-        - {{ .Values.controller.command }}
-        args:
+      - args:
+        - --metrics-bind-address={{ .Values.controller.metricsBindAddress }}
         {{- if .Values.controller.leaderElection.enabled }}
         - --leader-elect
         {{- end }}
-        - --metrics-bind-address={{ .Values.controller.metricsBindAddress }}
         - --health-probe-bind-address={{ .Values.controller.healthProbeBindAddress }}
-        - --webhook-cert-path=/tmp/k8s-webhook-server/serving-certs
         - --monitoring-namespace={{ .Values.monitoring.namespaceOverride }}
-        ports:
-        - containerPort: 8081
-          name: health
-          protocol: TCP
+        - --webhook-cert-path=/tmp/k8s-webhook-server/serving-certs
+        command:
+        - {{ .Values.controller.command }}
+        {{- if .Values.controller.env }}
+        env:
+        {{- toYaml .Values.controller.env | nindent 8 }}
+        {{- end }}
+        image: {{ (default .Values.server.image .Values.controller.image) }}:{{ .Chart.AppVersion }}
+        imagePullPolicy: IfNotPresent
         livenessProbe:
+          failureThreshold: 3
           httpGet:
             path: /healthz
             port: 8081
             scheme: HTTP
           initialDelaySeconds: 15
           periodSeconds: 20
-          failureThreshold: 3
           timeoutSeconds: 1
+        name: manager
+        ports:
+        - containerPort: 9443
+          name: webhook-server
+          protocol: TCP
         readinessProbe:
+          failureThreshold: 3
           httpGet:
             path: /readyz
             port: 8081
             scheme: HTTP
           initialDelaySeconds: 5
           periodSeconds: 10
-          failureThreshold: 3
           timeoutSeconds: 1
         resources: {{ toYaml .Values.controller.resources | nindent 10 }}
-        {{- if .Values.controller.env }}
-        env:
-        {{- toYaml .Values.controller.env | nindent 8 }}
-        {{- end }}
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -77,11 +81,9 @@ spec:
       restartPolicy: Always
       securityContext:
         runAsNonRoot: true
-        # 65532 is the standard non-root UID used by distroless/nonroot images.
-        # The manager image is built FROM scratch with no USER directive, so it
-        # defaults to root (UID 0). Setting runAsUser here explicitly overrides
-        # that default to satisfy the runAsNonRoot constraint.
         runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
       serviceAccountName: everest-controller-manager
       terminationGracePeriodSeconds: 10
       volumes:
