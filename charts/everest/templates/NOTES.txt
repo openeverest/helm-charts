@@ -37,7 +37,7 @@ RETRIEVE THE INITIAL ADMIN PASSWORD
 
 Run the following command to fetch the initial admin password:
 
-    kubectl get secret everest-accounts -n everest-system -o jsonpath='{.data.users\.yaml}' | base64 --decode | yq '.admin.passwordHash'
+    kubectl get secret everest-accounts -n {{ .Release.Namespace }} -o jsonpath='{.data.users\.yaml}' | base64 --decode | yq '.admin.passwordHash'
 
 **Note:** The initial password is stored in plain text. For security, change it immediately using the following command:
 
