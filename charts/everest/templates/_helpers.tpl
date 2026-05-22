@@ -24,17 +24,6 @@ Allows overriding the install namespace in combined charts.
 {{- end }}
 
 {{/*
-Allow overriding OLM namespace
-*/}}
-{{- define "everest.olmNamespace"}}
-{{- if .Values.compatibility.openshift }}
-{{- "openshift-marketplace" }}
-{{- else }}
-{{- .Values.olm.namespaceOverride }}
-{{- end }}
-{{- end }}
-
-{{/*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
@@ -112,33 +101,6 @@ admin:
 {{- $tlsCerts := .Values.server.tls.secret.certs }}
 tls.key: {{ index $tlsCerts "tls.key" | default $cert.Key | b64enc }}
 tls.crt: {{ index $tlsCerts "tls.crt" | default $cert.Cert | b64enc }}
-{{- end }}
-
-{{- define "everestOperator.tlsCerts" -}}
-{{- $currentSecret := lookup "v1" "Secret" (include "everest.namespace" .) "webhook-server-cert" -}}
-{{- $tlsCerts := .Values.operator.webhook.certs }}
-
-{{- if (and (get $tlsCerts "tls.key" ) (get $tlsCerts "tls.crt") (get $tlsCerts "ca.crt") )}}
-tls.key: {{ index $tlsCerts "tls.key" }}
-tls.crt: {{ index $tlsCerts "tls.crt" }}
-ca.crt: {{ index $tlsCerts "ca.crt" }}
-
-{{- else if (and .Release.IsUpgrade .Values.operator.webhook.preserveTLSCerts $currentSecret ) }}
-tls.key: {{ index $currentSecret.data "tls.key" }}
-tls.crt: {{ index $currentSecret.data "tls.crt" }}
-ca.crt: {{ index $currentSecret.data "ca.crt" }}
-
-{{- else }}
-{{- $svcName := printf "everest-operator-webhook-service" }}
-{{- $svcNameWithNS := ( printf "%s.%s" $svcName (include "everest.namespace" .) ) }}
-{{- $fullName := ( printf "%s.svc" $svcNameWithNS ) }}
-{{- $altNames := list $svcName $svcNameWithNS $fullName }}
-{{- $ca := genCA $svcName 3650 }}
-{{- $cert := genSignedCert $fullName nil $altNames 3650 $ca }}
-tls.key: {{ $cert.Key | b64enc }}
-tls.crt: {{ $cert.Cert | b64enc }}
-ca.crt: {{ $ca.Cert | b64enc }}
-{{- end }}
 {{- end }}
 
 {{/*

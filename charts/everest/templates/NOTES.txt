@@ -22,15 +22,6 @@ Thank you for installing OpenEverest (v{{ .Chart.AppVersion }})!
 {{- $pfUrl := printf "%s://localhost:%s" $pfUrlProto $pfSrcPort }}
 
 Follow the steps below to get started:
-{{ if not .Values.dbNamespace.enabled }}
-PROVISION A NAMESPACE FOR YOUR DATABASES
-=========================================
-
-Install a namespace for your databases using the following command:
-
-    helm install everest openeverest/everest-db-namespace --namespace everest --create-namespace
-
-{{- end }}
 
 RETRIEVE THE INITIAL ADMIN PASSWORD
 ====================================
