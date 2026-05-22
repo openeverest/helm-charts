@@ -1,6 +1,3 @@
-{{- if (ne (include "everest.namespace" .) "everest-system") }}
-{{ fail "Namespace cannot be set to anything other than everest-system" }}
-{{- end }}
 {{- $tlsCertsPath := "/etc/tls" }}
 {{- $probeScheme := "HTTP" }}
 {{- if .Values.server.tls.enabled }}
@@ -93,6 +90,10 @@ spec:
           value: {{ (include "everest.versionMetadataURL" .) }}
         - name: PORT
           value: {{ .Values.server.service.port | quote }}
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         {{- if .Values.server.tls.enabled }}
         - name: TLS_CERTS_PATH
           value: {{ $tlsCertsPath | quote }}
