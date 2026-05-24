@@ -2,9 +2,6 @@ dependencies:
 - name: common
   repository: file://charts/common
   version: 0.0.20
-- name: everest-db-namespace
-  repository: file://charts/everest-db-namespace
-  version: 1.14.0
 - name: kube-state-metrics
   repository: https://prometheus-community.github.io/helm-charts
   version: 5.27.0
@@ -20,8 +17,5 @@ dependencies:
 - name: everest-crds
   repository: file://charts/everest-crds
   version: 1.14.0
-- name: operator-lifecycle-manager
-  repository: https://percona.github.io/operator-lifecycle-manager
-  version: 0.1.0
-digest: sha256:1f42fd1411d2819be00602da24c8ca8f686ae2cfb4d375d04653c57a5ef5de3d
-generated: "2026-03-10T16:03:38.80095087Z"
+digest: sha256:8bfb07f789fe4bda1999519f97095bd2ea78d2fed1eab7eca1170254e88eefd2
+generated: "2026-05-22T15:04:15.245748343+01:00"

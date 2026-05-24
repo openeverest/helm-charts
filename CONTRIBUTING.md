@@ -33,7 +33,6 @@ helm-charts/
         ├── templates/              ← Kubernetes manifest templates
         └── charts/
             ├── everest-crds/       ← CRD sub-chart
-            ├── everest-db-namespace/
             ├── common/
             └── pmm3/
 ```
@@ -113,7 +112,7 @@ make release-and-publish VERSION=1.2.3
 ```
 
 This single command:
-1. Stamps `version` (= `CHART_VERSION`) and `appVersion` (= `VERSION`) in all three `Chart.yaml` files (`openeverest`, `everest-crds`, `everest-db-namespace`)
+1. Stamps `version` (= `CHART_VERSION`) and `appVersion` (= `VERSION`) in the `Chart.yaml` files (`openeverest`, `everest-crds`)
 2. Updates image references in `values.yaml`
 3. Re-pins dependency versions in `Chart.yaml`
 4. Runs `helm dependency update`
