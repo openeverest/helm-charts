@@ -22,6 +22,8 @@ telemetry: true
 server:
   # -- Image to use for the server container.
   image: ghcr.io/openeverest/openeverest
+  # -- Command to run in the server container.
+  command: /everest-api
   # -- Resources to allocate for the server container.
   resources:
     limits:
