@@ -106,6 +106,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: MONITORING_NAMESPACE
+              value: {{ .monitoringNamespace }}
           command:
             - /bin/sh
             - -ec
