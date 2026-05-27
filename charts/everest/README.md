@@ -139,6 +139,7 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | pmm3.pmm | object | `{"nameOverride":"pmm3"}` | PMM configuration. All PMM chart values go under this key. |
 | server.affinity | object | `{}` | Affinity settings for the server pod. |
 | server.apiRequestsRateLimit | int | `100` | Set the allowed number of requests per second. |
+| server.command | string | `"/everest-api"` | Command to run in the server container. |
 | server.env | list | `[]` | Additional environment variables to pass to the server deployment. |
 | server.image | string | `"ghcr.io/openeverest/openeverest"` | Image to use for the server container. |
 | server.initialAdminPassword | string | `""` | The initial password configured for the admin user. If unset, a random password is generated. It is strongly recommended to reset the admin password after installation. |
