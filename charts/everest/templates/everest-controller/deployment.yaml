@@ -24,8 +24,11 @@ spec:
     spec:
       containers:
       - name: manager
-        image: {{ (default .Values.server.image .Values.controller.image) }}:{{ .Chart.AppVersion }}
-        imagePullPolicy: IfNotPresent
+        {{- $repo := default .Values.server.image.repository .Values.controller.image.repository }}
+        {{- $tag := default .Values.server.image.tag .Values.controller.image.tag | default .Chart.AppVersion }}
+        {{- $pullPolicy := default .Values.server.image.pullPolicy .Values.controller.image.pullPolicy }}
+        image: {{ $repo }}:{{ $tag }}
+        imagePullPolicy: {{ $pullPolicy }}
         command:
         - {{ .Values.controller.command }}
         args:

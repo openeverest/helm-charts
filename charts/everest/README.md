@@ -117,16 +117,24 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | controller.enabled | bool | `true` | If set, enables the Everest controller manager. |
 | controller.env | list | `[]` | Additional environment variables to pass to the controller deployment. |
 | controller.healthProbeBindAddress | string | `":8081"` | Health probe address for the controller. |
-| controller.image | string |  | Image to use for the controller container. Defaults to the same image as the server (multi-binary image). |
+| controller.image | object |  | Image to use for the controller container. Defaults to the same image as the server (multi-binary image). |
+| controller.image.pullPolicy | string | `""` | Pull policy for the controller image. Defaults to `server.image.pullPolicy` if not set. |
+| controller.image.repository | string | `""` | Repository for the controller image. Defaults to `server.image.repository` if not set. |
+| controller.image.tag | string | `""` | Tag for the controller image. Defaults to `server.image.tag` (or `.Chart.AppVersion`) if not set. |
 | controller.leaderElection | object | `{"enabled":true}` | Enable leader election for the controller manager. |
 | controller.metricsBindAddress | string | `"0"` | Metrics address for the controller. |
 | controller.resources | object | `{"limits":{"cpu":"500m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"64Mi"}}` | Resources to allocate for the controller container. |
 | controller.webhook.certs | object | `{"ca.crt":"","tls.crt":"","tls.key":""}` | Certificates to use for the webhook server. The values must be base64 encoded. If unset, uses self-signed certificates. |
 | controller.webhook.preserveTLSCerts | bool |  | If set to true, preserves existing TLS Certificate Secrets during upgrades. This setting is ignored if certificates are explicitly provided in controller.webhook.certs, in which case the specified certificates are used instead. This setting has no effect during installation. |
 | createMonitoringResources | bool | `true` | If set, creates resources for Kubernetes monitoring. |
-| hooks | object | `{"image":"percona/everest-helmtools:0.0.1","upgradeChecks":{}}` | Configuration for Helm chart hooks. |
-| hooks.image | string |  | Default image to use for the Helm chart hooks job. |
-| hooks.upgradeChecks | object | `{}` | Configuration for the upgrade checks hook. |
+| hooks | object | `{"image":{"pullPolicy":"IfNotPresent","repository":"percona/everest-helmtools","tag":"0.0.1"},"upgradeChecks":{"image":{"repository":"","tag":""}}}` | Configuration for Helm chart hooks. |
+| hooks.image | object | `{"pullPolicy":"IfNotPresent","repository":"percona/everest-helmtools","tag":"0.0.1"}` | Default image to use for the Helm chart hooks job. |
+| hooks.image.pullPolicy | string | `"IfNotPresent"` | Pull policy for the hooks image. |
+| hooks.image.repository | string | `"percona/everest-helmtools"` | Repository for the hooks image. |
+| hooks.image.tag | string | `"0.0.1"` | Tag for the hooks image. |
+| hooks.upgradeChecks | object | `{"image":{"repository":"","tag":""}}` | Configuration for the upgrade checks hook. |
+| hooks.upgradeChecks.image.repository | string | `""` | Repository for the upgrade checks image. Defaults to `hooks.image.repository` if not set. |
+| hooks.upgradeChecks.image.tag | string | `""` | Tag for the upgrade checks image. Defaults to `hooks.image.tag` if not set. |
 | ingress.annotations | object | `{}` | Additional annotations for the ingress resource. |
 | ingress.enabled | bool | `false` | Enable ingress for Everest server |
 | ingress.hosts | list | `[{"host":"chart-example.local","paths":[{"path":"/","pathType":"ImplementationSpecific"}]}]` | List of hosts and their paths for the ingress resource. |
@@ -141,7 +149,10 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | server.apiRequestsRateLimit | int | `100` | Set the allowed number of requests per second. |
 | server.command | string | `"/everest-api"` | Command to run in the server container. |
 | server.env | list | `[]` | Additional environment variables to pass to the server deployment. |
-| server.image | string | `"ghcr.io/openeverest/openeverest"` | Image to use for the server container. |
+| server.image | object | `{"pullPolicy":"IfNotPresent","repository":"ghcr.io/openeverest/openeverest","tag":""}` | Image to use for the server container. |
+| server.image.pullPolicy | string | `"IfNotPresent"` | Pull policy for the server image. |
+| server.image.repository | string | `"ghcr.io/openeverest/openeverest"` | Repository for the server image. |
+| server.image.tag | string | `""` | Tag for the server image. Defaults to `.Chart.AppVersion` if not set. |
 | server.initialAdminPassword | string | `""` | The initial password configured for the admin user. If unset, a random password is generated. It is strongly recommended to reset the admin password after installation. |
 | server.jwtKey | string | `""` | Key for signing JWT tokens. This needs to be an RSA private key. This is created during installation only. To update the key after installation, you need to manually update the `everest-jwt` Secret or use everestctl. |
 | server.nodeSelector | object | `{}` | Node selector for the server pod. |

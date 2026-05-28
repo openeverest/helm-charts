@@ -51,7 +51,8 @@ spec:
       {{- end }}
       containers:
       - name: everest
-        image: {{ .Values.server.image }}:{{ .Chart.AppVersion }}
+        image: {{ .Values.server.image.repository }}:{{ .Values.server.image.tag | default .Chart.AppVersion }}
+        imagePullPolicy: {{ .Values.server.image.pullPolicy }}
         command:
         - {{ .Values.server.command }}
         ports:

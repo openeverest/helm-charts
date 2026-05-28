@@ -1,16 +1,22 @@
 # -- Configuration for Helm chart hooks.
 hooks:
   # -- Default image to use for the Helm chart hooks job.
-  # @default -- `percona/everest-helmtools:0.0.1`
-  image: "percona/everest-helmtools:0.0.1"
-  # Image to use for the hook job.
-  # If not set, uses the value of `hooks.image`.
-  # image: ""
+  image:
+    # -- Repository for the hooks image.
+    repository: "percona/everest-helmtools"
+    # -- Tag for the hooks image.
+    tag: "0.0.1"
+    # -- Pull policy for the hooks image.
+    pullPolicy: IfNotPresent
   # -- Configuration for the upgrade checks hook.
-  upgradeChecks: {}
-  # Image to use for the hook job.
-  # If not set, uses the value of `hooks.image`.
-  # image: "alpine:3.20"
+  upgradeChecks:
+    # Image to use for the upgrade checks hook job.
+    # If not set, uses the values from `hooks.image`.
+    image:
+      # -- Repository for the upgrade checks image. Defaults to `hooks.image.repository` if not set.
+      repository: ""
+      # -- Tag for the upgrade checks image. Defaults to `hooks.image.tag` if not set.
+      tag: ""
 compatibility:
   # -- Enable OpenShift compatibility.
   openshift: false
@@ -21,7 +27,13 @@ namespaceOverride: ""
 telemetry: true
 server:
   # -- Image to use for the server container.
-  image: ghcr.io/openeverest/openeverest
+  image:
+    # -- Repository for the server image.
+    repository: ghcr.io/openeverest/openeverest
+    # -- Tag for the server image. Defaults to `.Chart.AppVersion` if not set.
+    tag: ""
+    # -- Pull policy for the server image.
+    pullPolicy: IfNotPresent
   # -- Command to run in the server container.
   command: /everest-api
   # -- Resources to allocate for the server container.
@@ -155,7 +167,13 @@ controller:
   # -- Image to use for the controller container.
   # Defaults to the same image as the server (multi-binary image).
   # @default -- uses the same image as the server.
-  image: ""
+  image:
+    # -- Repository for the controller image. Defaults to `server.image.repository` if not set.
+    repository: ""
+    # -- Tag for the controller image. Defaults to `server.image.tag` (or `.Chart.AppVersion`) if not set.
+    tag: ""
+    # -- Pull policy for the controller image. Defaults to `server.image.pullPolicy` if not set.
+    pullPolicy: ""
   # -- Command to run in the controller container.
   command: /everest-controller
   # -- Health probe address for the controller.
