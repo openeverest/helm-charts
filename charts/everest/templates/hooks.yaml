@@ -1,3 +1,9 @@
 {{- if .Values.upgrade.preflightChecks }}
-{{- include "everest.preUpgradeChecks" (dict "namespace" (include "everest.namespace" .) "version" .Chart.AppVersion "versionMetadataURL" (include "everest.versionMetadataURL" .) "image" (.Values.hooks.upgradeChecks.image | default .Values.hooks.image)) }}
+{{- $hooksImage := printf "%s:%s" .Values.hooks.image.repository .Values.hooks.image.tag }}
+{{- $upgradeChecksImage := "" }}
+{{- if .Values.hooks.upgradeChecks.image.repository }}
+{{- $upgradeChecksTag := .Values.hooks.upgradeChecks.image.tag | default .Values.hooks.image.tag }}
+{{- $upgradeChecksImage = printf "%s:%s" .Values.hooks.upgradeChecks.image.repository $upgradeChecksTag }}
+{{- end }}
+{{- include "everest.preUpgradeChecks" (dict "namespace" (include "everest.namespace" .) "version" .Chart.AppVersion "versionMetadataURL" (include "everest.versionMetadataURL" .) "image" ($upgradeChecksImage | default $hooksImage)) }}
 {{- end }}
