@@ -13,6 +13,7 @@ Thank you for installing OpenEverest (v{{ .Chart.AppVersion }})!
 ║                    🚧 OPENEVEREST v2 - DEVELOPER PREVIEW 🚧               ║
 ║                                                                           ║
 ║  This is an early release intended for development and testing purposes.  ║
+║  NOT SUITABLE FOR PRODUCTION USE.                                         ║
 ╚═══════════════════════════════════════════════════════════════════════════╝
 
 {{- if .Release.IsInstall }}
@@ -36,9 +37,13 @@ Run the following command to fetch the initial admin password:
 
     kubectl get secret everest-accounts -n {{ .Release.Namespace }} -o jsonpath='{.data.users\.yaml}' | base64 --decode | yq '.admin.passwordHash'
 
-**Note:** The initial password is stored in plain text. For security, change it immediately using the following command:
+**Note:** Passwords are currently stored in plaintext in this developer preview.
+Do not use in production. Password hashing will be implemented in future releases.
+To update password replace <NEW_PASSWORD> with your desired password before running the command:
 
-    everestctl accounts set-password -u admin
+    kubectl get secret everest-accounts -n {{ .Release.Namespace }} -o yaml | \
+      yq '.data."users.yaml" |= (@base64d | fromjson | .admin.passwordHash = "<NEW_PASSWORD>" | tojson | @base64)' | \
+      kubectl apply -f -
 
 ACCESS THE OPENEVEREST UI
 ==========================
