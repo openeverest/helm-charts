@@ -172,6 +172,25 @@ entries:
     version: 0.0.0
   everest-crds:
   - apiVersion: v2
+    appVersion: 2.0.0-dev.1
+    created: "2026-05-29T17:27:28.659094568Z"
+    description: A Helm chart for Everest Custom Resource Definitions (CRDs).
+    digest: f1212f551c069070e73f721409a4bb1ed9441c79d95a72df3af813d69d8e1c53
+    maintainers:
+    - email: mayank.shah@percona.com
+      name: mayankshah1607
+    - email: oksana.grishchenko@percona.com
+      name: oksana-grishchenko
+    - email: diogo.recharte@percona.com
+      name: recharte
+    - email: maxim.kondratenko@percona.com
+      name: maxkondr
+    name: everest-crds
+    type: application
+    urls:
+    - https://github.com/openeverest/helm-charts/releases/download/everest-crds-2.0.0-dev.1/everest-crds-2.0.0-dev.1.tgz
+    version: 2.0.0-dev.1
+  - apiVersion: v2
     appVersion: 1.15.2
     created: "2026-05-06T08:33:20.326081289Z"
     description: A Helm chart for Everest Custom Resource Definitions (CRDs).
@@ -1130,4 +1149,4 @@ entries:
     urls:
     - openeverest-1.13.1.tgz
     version: 1.13.1
-generated: "2026-05-29T17:27:25.087820222Z"
+generated: "2026-05-29T17:27:28.659186228Z"
