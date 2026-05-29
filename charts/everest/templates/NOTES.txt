@@ -9,6 +9,12 @@ Thank you for installing OpenEverest (v{{ .Chart.AppVersion }})!
           ██                                                                                                      
           ▀▀                                             openeverest.io                                                     
 
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                    🚧 OPENEVEREST v2 - DEVELOPER PREVIEW 🚧               ║
+║                                                                           ║
+║  This is an early release intended for development and testing purposes.  ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
 {{- if .Release.IsInstall }}
 {{- $pfSrcPort := "8080" }}
 {{- $pfDstPort := "8080" }}
@@ -35,11 +41,24 @@ Run the following command to fetch the initial admin password:
     everestctl accounts set-password -u admin
 
 ACCESS THE OPENEVEREST UI
-======================
+==========================
 
 To access the web UI, set up port-forwarding and visit {{ $pfUrl }} in your browser:
 
     {{ $pfCmd }}
+
+INSTALL A PROVIDER TO MANAGE DATABASES
+=======================================
+
+OpenEverest v2 uses a pluggable provider architecture.
+Install a provider to manage your database of choice.
+
+Install Percona Server for MongoDB provider:
+→ https://openeverest.io/provider-percona-server-mongodb/
+
+Or develop your own custom provider:
+→ Provider SDK: https://github.com/openeverest/provider-sdk
+
 {{- end }}
 
 {{- if .Release.IsUpgrade }}
