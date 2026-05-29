@@ -40,6 +40,7 @@ rules:
   - backup.openeverest.io
   resources:
   - backups
+  - backupstorages
   - restores
   verbs:
   - create
@@ -53,6 +54,7 @@ rules:
   - backup.openeverest.io
   resources:
   - backups/finalizers
+  - backupstorages/finalizers
   - restores/finalizers
   verbs:
   - update
@@ -60,6 +62,7 @@ rules:
   - backup.openeverest.io
   resources:
   - backups/status
+  - backupstorages/status
   - restores/status
   verbs:
   - get
