@@ -27,10 +27,6 @@ helm install everest-core openeverest/openeverest \
 
 Notes:
 * This command deploys the OpenEverest components in the `everest-system` namespace. Currently, we do not support specifying a different namespace for Everest.
-* Additionally, it also deploys a new namespace called `everest` for your databases and the database operators.
-* If you prefer to manage your database namespace separately, you may set `dbNamespace.enabled=false`.
-* You may override the name of the database namespace using the `dbNamespace.namespaceOverride` parameter.
-* By default, all database operators are installed in your database namespace. You may override this by specifying one or more of the following: [`dbNamespace.pxc=false`, `dbNamespace.postgresql=false`, `dbNamespace.psmdb=false`].
 * We currently do not support installation without the use of chart hooks. I.e, the use of `--no-hooks` is not supported during installation.
 
 ### 3. Retrieve the admin password
@@ -51,63 +47,18 @@ Notes:
 * You may specify a different default admin password using `server.initialAdminPassword` parameter during installation.
 * The default admin password is stored in plain text. It is highly recommended to update the password using `everestctl` to ensure that the passwords are hashed.
 
-### 4. Deploy additional database namespaces
+### 4. Uninstall
 
-After OpenEverest is successfully running, you may create additional database namespaces using the `everest-db-namespace` Helm chart.
-If you had set `dbNamespaces.enabled=false` in the previous step, you may deploy a database namespaces using the following command:
-
-```sh
-helm install everest \
-    openeverest/everest-db-namespace \
-    --create-namespace \
-    --namespace everest
-```
-
-Notes:
-* By default, all database operators are installed in your database namespace. You may override this by specifying one or more of the following: [`dbNamespace.pxc=false`, `dbNamespace.postgresql=false`, `dbNamespace.psmdb=false`].
-* We currently do not support installation without the use of chart hooks. I.e, the use of `--no-hooks` is not supported during installation.
-
-#### 4.1 Deploying additional operators to an existing database namespace
-
-If you have an existing database namespace and would like to deploy additional operators to it, you may do so using the following command:
-
-```sh
-helm upgrade everest \
-    openeverest/everest-db-namespace \
-    --namespace [NAMESPACE]
-    --pxc=true \
-    --postgresql=true
-```
-
-The above example assumes that the MongoDB operator is already installed in the database namespace and you would like to install the Percona XtraDB Cluster and PostgreSQL operators.
-
-Notes:
-* Removing a database operator from a namespace is not supported. You may only add additional operators.
-
-### 5. Uninstall
-
-#### 5.1 Uninstalling database namespaces
-
-If you created any database namespaces (apart from the one installed by default), you must delete them first.
-
-```sh
-helm uninstall everest -n <your_db_namespace>
-kubectl delete ns <your_db_namespace>
-```
-
-Notes:
-* This runs a chart hook that cleans up your database resources first. While it is not recommended, you may skip this step by specifying `cleanupOnUninstall=false`.
-
-#### 5.2 Uninstalling Everest
+#### 4.1 Uninstalling Everest
 
 ```sh
 helm uninstall everest-core -n everest-system
 kubectl delete ns everest-system
 ```
 
-### 6. Upgrade
+### 5. Upgrade
 
-#### 6.1 Upgrade CRDs
+#### 5.1 Upgrade CRDs
 
 As of Helm v3, CRDs are not automatically updated during a Helm upgrade. You must manually upgrade the CRDs.
 
@@ -139,16 +90,11 @@ helm upgrade --install everest-crds \
 >
 > This ensures the CRDs are correctly recognized as managed by Helm, avoiding validation issues during the upgrade.
 
-#### 6.2 Upgrade Helm Releases
+#### 5.2 Upgrade Helm Releases
 
 Upgrade the Helm release for Everest (core components):
 ```sh
 helm upgrade everest-core openeverest/openeverest --namespace everest-system --version $(VERSION)
-```
-
-Upgrade the Helm release for the database namespace (if applicable):
-```sh
-helm upgrade everest openeverest/everest-db-namespace --namespace [DB NAMESPACE] --version $(VERSION)
 ```
 
 Notes:
@@ -171,62 +117,42 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | controller.enabled | bool | `true` | If set, enables the Everest controller manager. |
 | controller.env | list | `[]` | Additional environment variables to pass to the controller deployment. |
 | controller.healthProbeBindAddress | string | `":8081"` | Health probe address for the controller. |
-| controller.image | string |  | Image to use for the controller container. Defaults to the same image as the server (multi-binary image). |
+| controller.image | object |  | Image to use for the controller container. Defaults to the same image as the server (multi-binary image). |
+| controller.image.pullPolicy | string | `""` | Pull policy for the controller image. Defaults to `server.image.pullPolicy` if not set. |
+| controller.image.repository | string | `""` | Repository for the controller image. Defaults to `server.image.repository` if not set. |
+| controller.image.tag | string | `""` | Tag for the controller image. Defaults to `server.image.tag` (or `.Chart.AppVersion`) if not set. |
 | controller.leaderElection | object | `{"enabled":true}` | Enable leader election for the controller manager. |
 | controller.metricsBindAddress | string | `"0"` | Metrics address for the controller. |
 | controller.resources | object | `{"limits":{"cpu":"500m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"64Mi"}}` | Resources to allocate for the controller container. |
 | controller.webhook.certs | object | `{"ca.crt":"","tls.crt":"","tls.key":""}` | Certificates to use for the webhook server. The values must be base64 encoded. If unset, uses self-signed certificates. |
 | controller.webhook.preserveTLSCerts | bool |  | If set to true, preserves existing TLS Certificate Secrets during upgrades. This setting is ignored if certificates are explicitly provided in controller.webhook.certs, in which case the specified certificates are used instead. This setting has no effect during installation. |
 | createMonitoringResources | bool | `true` | If set, creates resources for Kubernetes monitoring. |
-| dataImporters.perconaPGOperator | object | `{"enabled":true}` | Settings for the Percona PostgreSQL Operator data importer. |
-| dataImporters.perconaPGOperator.enabled | bool | `true` | If set, installs the Percona PostgreSQL Operator data importer. |
-| dataImporters.perconaPSMDBOperator | object | `{"enabled":true}` | Settings for the Percona PSMDB Operator data importer. |
-| dataImporters.perconaPSMDBOperator.enabled | bool | `true` | If set, installs the Percona PSMDB Operator data importer. |
-| dataImporters.perconaPXCOperator | object | `{"enabled":true}` | Settings for the Percona PXC Operator data importer. |
-| dataImporters.perconaPXCOperator.enabled | bool | `true` | If set, installs the Percona PXC Operator data importer. |
-| dbNamespace.enabled | bool | `true` | If set, deploy the database operators in `everest` namespace. The namespace may be overridden by setting `dbNamespace.namespaceOverride`. |
-| dbNamespace.namespaceOverride | string | `"everest"` | If `dbNamespace.enabled` is `true`, deploy the database operators in this namespace. |
-| hooks | object | `{"image":"percona/everest-helmtools:0.0.1","lbcCleanup":{},"pspCleanup":{},"upgradeChecks":{}}` | Configuration for Helm chart hooks. |
-| hooks.image | string |  | Default image to use for the Helm chart hooks job. |
-| hooks.lbcCleanup | object | `{}` | Configuration for LoadBalancerConfig clean-up hook. |
-| hooks.pspCleanup | object | `{}` | Configuration for PodSchedulingPolicy clean-up hook. |
-| hooks.upgradeChecks | object | `{}` | Configuration for the upgrade checks hook. |
+| hooks | object | `{"image":{"pullPolicy":"IfNotPresent","repository":"percona/everest-helmtools","tag":"0.0.1"},"upgradeChecks":{"image":{"repository":"","tag":""}}}` | Configuration for Helm chart hooks. |
+| hooks.image | object | `{"pullPolicy":"IfNotPresent","repository":"percona/everest-helmtools","tag":"0.0.1"}` | Default image to use for the Helm chart hooks job. |
+| hooks.image.pullPolicy | string | `"IfNotPresent"` | Pull policy for the hooks image. |
+| hooks.image.repository | string | `"percona/everest-helmtools"` | Repository for the hooks image. |
+| hooks.image.tag | string | `"0.0.1"` | Tag for the hooks image. |
+| hooks.upgradeChecks | object | `{"image":{"repository":"","tag":""}}` | Configuration for the upgrade checks hook. |
+| hooks.upgradeChecks.image.repository | string | `""` | Repository for the upgrade checks image. Defaults to `hooks.image.repository` if not set. |
+| hooks.upgradeChecks.image.tag | string | `""` | Tag for the upgrade checks image. Defaults to `hooks.image.tag` if not set. |
 | ingress.annotations | object | `{}` | Additional annotations for the ingress resource. |
 | ingress.enabled | bool | `false` | Enable ingress for Everest server |
 | ingress.hosts | list | `[{"host":"chart-example.local","paths":[{"path":"/","pathType":"ImplementationSpecific"}]}]` | List of hosts and their paths for the ingress resource. |
 | ingress.ingressClassName | string | `""` | Ingress class name. This is used to specify which ingress controller should handle this ingress. |
 | ingress.tls | list | `[]` | Each entry in the list specifies a TLS certificate and the hosts it applies to. |
 | namespaceOverride | string | `""` | Namespace override. Defaults to the value of .Release.Namespace. |
-| olm.catalogSourceImage | string | `"ghcr.io/openeverest/openeverest-catalog"` | Image to use for Everest CatalogSource. |
-| olm.image | string | `"percona/olm@sha256:13e8f4e919e753faa7da35a9064822381098bcd44acc284877bf0964ceecbfd5"` | Image to use for the OLM components. |
-| olm.install | bool | `true` | If set, installs OLM in the provided namespace. Should be set to `false` if compatibility.openshift=true. |
-| olm.namespace | string | `"everest-olm"` | Namespace where OLM is installed. Do no change unless you know what you are doing. DEPRECATED: Will be removed in a future release. Use olm.namespaceOverride instead. |
-| olm.namespaceOverride | string | `"everest-olm"` | Namespace where OLM is installed. Do no change unless you know what you are doing. |
-| olm.packageserver.tls.caCert | string | `""` | CA certificate for the PackageServer APIService. Overrides the tls.type setting. |
-| olm.packageserver.tls.tlsCert | string | `""` | Client certificate for the PackageServer APIService. Overrides the tls.type setting. |
-| olm.packageserver.tls.tlsKey | string | `""` | Client key for the PackageServer APIService. Overrides the tls.type setting. |
-| olm.packageserver.tls.type | string | `"helm"` | Type of TLS certificates. Supported values are "helm" and "cert-manager". For production setup, it is recommended to use "cert-manager". |
-| operator.affinity | object | `{}` | Affinity settings for the operator pod. |
-| operator.enableLeaderElection | bool | `true` | Enable leader election for the operator. |
-| operator.env | list | `[]` | Additional environment variables to pass to the operator deployment. |
-| operator.healthProbeAddr | string | `":8081"` | Health probe address for the operator. |
-| operator.image | string | `"ghcr.io/openeverest/openeverest-operator"` | Image to use for the Everest operator container. |
-| operator.init | bool | `true` | Enable initContainer migration |
-| operator.metricsAddr | string | `"127.0.0.1:8080"` | Metrics address for the operator. |
-| operator.nodeSelector | object | `{}` | Node selector for the operator pod. |
-| operator.resources | object | `{"limits":{"cpu":"500m","memory":"128Mi"},"requests":{"cpu":"5m","memory":"64Mi"}}` | Resources to allocate for the operator container. |
-| operator.tolerations | list | `[]` | Tolerations for the operator pod. |
-| operator.topologySpreadConstraints | list | `[]` | Topology spread constraints for the operator pod. |
-| operator.webhook.certs | object | `{"ca.crt":"","tls.crt":"","tls.key":""}` | Certificates to use for the webhook server. The values must be base64 encoded. If unset, uses self-signed certificates. |
-| operator.webhook.preserveTLSCerts | bool |  | If set to true, preserves existing TLS Certificate Secrets during upgrades. This setting is ignored if certificates are explicitly provided in operator.webhook.certs, in which case the specified certificates are used instead. This setting has no effect during installation. |
 | pmm | object | `{"enabled":false,"nameOverride":"pmm"}` | PMM settings. |
 | pmm.enabled | bool | `false` | If set, deploys PMM2 in the release namespace. |
 | pmm3.enabled | bool | `false` | If set, deploys PMM3 in the release namespace. |
 | pmm3.pmm | object | `{"nameOverride":"pmm3"}` | PMM configuration. All PMM chart values go under this key. |
 | server.affinity | object | `{}` | Affinity settings for the server pod. |
 | server.apiRequestsRateLimit | int | `100` | Set the allowed number of requests per second. |
+| server.command | string | `"/everest-api"` | Command to run in the server container. |
 | server.env | list | `[]` | Additional environment variables to pass to the server deployment. |
-| server.image | string | `"ghcr.io/openeverest/openeverest"` | Image to use for the server container. |
+| server.image | object | `{"pullPolicy":"IfNotPresent","repository":"ghcr.io/openeverest/openeverest","tag":""}` | Image to use for the server container. |
+| server.image.pullPolicy | string | `"IfNotPresent"` | Pull policy for the server image. |
+| server.image.repository | string | `"ghcr.io/openeverest/openeverest"` | Repository for the server image. |
+| server.image.tag | string | `""` | Tag for the server image. Defaults to `.Chart.AppVersion` if not set. |
 | server.initialAdminPassword | string | `""` | The initial password configured for the admin user. If unset, a random password is generated. It is strongly recommended to reset the admin password after installation. |
 | server.jwtKey | string | `""` | Key for signing JWT tokens. This needs to be an RSA private key. This is created during installation only. To update the key after installation, you need to manually update the `everest-jwt` Secret or use everestctl. |
 | server.nodeSelector | object | `{}` | Node selector for the server pod. |
@@ -267,15 +193,15 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | versionMetadataURL | string | `"https://check.percona.com"` | URL of the Version Metadata Service. |
 
 ## Notice for developers
-In case you made any changes in `helm-charts/charts/everest/charts/common` or `helm-charts/charts/everest/charts/everest-db-namespace` directories,
+In case you made any changes in `helm-charts/charts/everest/charts/common` directory,
 please make sure you perform the following actions before creating PR:
-- bump chart version in `helm-charts/charts/everest/charts/common/Chart.yaml` or `helm-charts/charts/everest/charts/everest-db-namespace/Chart.yaml` accordingly in `version` parameter.
+- bump chart version in `helm-charts/charts/everest/charts/common/Chart.yaml` accordingly in `version` parameter.
 - in `helm-charts/charts/everest` directory run:
     ```bash
     make prepare-pr
     ```
 
-In case you need to update the OpenEverest Custom Resource Definitions (CRDs) after the changes in `github.com/openeverest/openeverest-operator` repository, please run the following command:
+In case you need to update the OpenEverest Custom Resource Definitions (CRDs) after the changes in `github.com/openeverest/openeverest` repository, please run the following command:
 ```bash
-CRD_VERSION=<branch name in openeverest/openeverest-operator repo> make prepare-pr
+CRD_VERSION=<branch name in openeverest/openeverest repo> make prepare-pr
 ```

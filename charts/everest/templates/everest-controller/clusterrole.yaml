@@ -40,6 +40,7 @@ rules:
   - backup.openeverest.io
   resources:
   - backups
+  - backupstorages
   - restores
   verbs:
   - create
@@ -53,6 +54,7 @@ rules:
   - backup.openeverest.io
   resources:
   - backups/finalizers
+  - backupstorages/finalizers
   - restores/finalizers
   verbs:
   - update
@@ -60,6 +62,7 @@ rules:
   - backup.openeverest.io
   resources:
   - backups/status
+  - backupstorages/status
   - restores/status
   verbs:
   - get
@@ -151,6 +154,35 @@ rules:
   - list
   - update
   - watch
+- apiGroups:
+  - plugin.openeverest.io
+  resources:
+  - plugininstallations
+  - plugins
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - plugin.openeverest.io
+  resources:
+  - plugininstallations/finalizers
+  - plugins/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - plugin.openeverest.io
+  resources:
+  - plugininstallations/status
+  - plugins/status
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - rbac.authorization.k8s.io
   resources:

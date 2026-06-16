@@ -13,8 +13,6 @@ helm install everest-core openeverest/openeverest \
     --namespace everest-system \
     --create-namespace \
     --set compatibility.openshift=true \
-    --set dbNamespace.compatibility.openshift=true \
-    --set olm.install=false \
     --set kube-state-metrics.securityContext.enabled=false \
     --set kube-state-metrics.rbac.create=false
 ```
@@ -41,18 +39,6 @@ EOF
 ```
 
 > Note: For versions 1.5.0 and above, this `ClusterRoleBinding` is created automatically when you set `compatibility.openshift=true`.
-
-## 3. (Optional) Install additional database namespaces
-
-If you need to add database namespaces, run the following command with OpenShift compatibility enabled:
-
-```
-helm install everest \
-    openeverest/everest-db-namespace \
-    --create-namespace \
-    --namespace everest \
-    --set compatibility.openshift=true
-```
 
 For detailed instructions, refer to the guide linked [here](../README.md), but adjust the installation parameters according to the values specified in this document.
 

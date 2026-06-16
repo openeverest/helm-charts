@@ -9,6 +9,13 @@ Thank you for installing OpenEverest (v{{ .Chart.AppVersion }})!
           ██                                                                                                      
           ▀▀                                             openeverest.io                                                     
 
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                    🚧 OPENEVEREST v2 - DEVELOPER PREVIEW 🚧               ║
+║                                                                           ║
+║  This is an early release intended for development and testing purposes.  ║
+║  NOT SUITABLE FOR PRODUCTION USE.                                         ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
 {{- if .Release.IsInstall }}
 {{- $pfSrcPort := "8080" }}
 {{- $pfDstPort := "8080" }}
@@ -22,15 +29,6 @@ Thank you for installing OpenEverest (v{{ .Chart.AppVersion }})!
 {{- $pfUrl := printf "%s://localhost:%s" $pfUrlProto $pfSrcPort }}
 
 Follow the steps below to get started:
-{{ if not .Values.dbNamespace.enabled }}
-PROVISION A NAMESPACE FOR YOUR DATABASES
-=========================================
-
-Install a namespace for your databases using the following command:
-
-    helm install everest openeverest/everest-db-namespace --namespace everest --create-namespace
-
-{{- end }}
 
 RETRIEVE THE INITIAL ADMIN PASSWORD
 ====================================
@@ -39,16 +37,39 @@ Run the following command to fetch the initial admin password:
 
     kubectl get secret everest-accounts -n {{ .Release.Namespace }} -o jsonpath='{.data.users\.yaml}' | base64 --decode | yq '.admin.passwordHash'
 
-**Note:** The initial password is stored in plain text. For security, change it immediately using the following command:
+**Note:** Passwords are currently stored in plaintext in this developer preview.
+To update password replace <NEW_PASSWORD> with your desired password before running the command:
 
-    everestctl accounts set-password -u admin
+    kubectl get secret everest-accounts -n {{ .Release.Namespace }} -o yaml | \
+      yq '.data."users.yaml" |= (@base64d | fromjson | .admin.passwordHash = "<NEW_PASSWORD>" | tojson | @base64)' | \
+      kubectl apply -f -
 
 ACCESS THE OPENEVEREST UI
-======================
+==========================
 
 To access the web UI, set up port-forwarding and visit {{ $pfUrl }} in your browser:
 
     {{ $pfCmd }}
+
+INSTALL A PROVIDER TO MANAGE DATABASES
+=======================================
+
+OpenEverest v2 uses a pluggable provider architecture.
+Install a provider to manage your database.
+
+Install Percona Server for MongoDB provider:
+
+    helm repo add provider-percona-server-mongodb https://openeverest.github.io/provider-percona-server-mongodb/
+    helm repo update
+    helm install provider-percona-server-mongodb provider-percona-server-mongodb/provider-percona-server-mongodb \
+      --namespace {{ .Release.Namespace }}
+
+→ https://openeverest.io/provider-percona-server-mongodb/
+
+Or develop your own custom provider:
+
+→ https://github.com/openeverest/provider-sdk/blob/main/PROVIDER_DEVELOPMENT.md
+
 {{- end }}
 
 {{- if .Release.IsUpgrade }}
