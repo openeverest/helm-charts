@@ -37,4 +37,12 @@ spec:
     - create
     - update
     - delete
+  - apiGroups:
+    - ""
+    resources:
+    - pods
+    - persistentvolumeclaims
+    verbs:
+    - get
+    - list
 {{- end }}
