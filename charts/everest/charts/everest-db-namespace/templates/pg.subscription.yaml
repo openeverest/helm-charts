@@ -10,7 +10,7 @@ metadata:
     # The uninstallation of operators is handled gracefully in the pre-delete hook.
     helm.sh/resource-policy: keep
 spec:
-  channel: stable-v2
+  channel: stable-v3
   installPlanApproval: Manual
   name: percona-postgresql-operator
   source: everest-catalog
