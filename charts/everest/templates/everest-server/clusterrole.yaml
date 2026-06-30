@@ -27,7 +27,7 @@ rules:
   - apiGroups: ["monitoring.openeverest.io"]
     resources: ["*"]
     verbs: ["*"]
-  - apiGroups: ["plugin.openeverest.io"]
+  - apiGroups: ["extensions.openeverest.io"]
     resources: ["*"]
     verbs: ["*"]
   - apiGroups: ["enginefeatures.everest.percona.com"]
