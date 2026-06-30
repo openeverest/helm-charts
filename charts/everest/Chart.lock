@@ -17,5 +17,8 @@ dependencies:
 - name: everest-crds
   repository: file://charts/everest-crds
   version: 1.14.0
-digest: sha256:8bfb07f789fe4bda1999519f97095bd2ea78d2fed1eab7eca1170254e88eefd2
-generated: "2026-05-22T15:04:15.245748343+01:00"
+- name: plugin-hub
+  repository: oci://ghcr.io/openeverest/charts
+  version: 0.1.9
+digest: sha256:5875218099d23d6a5814150b4a3644b0acf493c322a7bdd92901fd2455e302b4
+generated: "2026-06-30T16:10:16.885085+07:00"

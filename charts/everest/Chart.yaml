@@ -44,3 +44,7 @@ dependencies:
     repository: "file://charts/everest-crds"
     condition: "everest-crds.enabled"
     version: "1.14.0"
+  - name: plugin-hub
+    repository: "oci://ghcr.io/openeverest/charts"
+    condition: "plugins.hub.enabled"
+    version: "0.1.9"

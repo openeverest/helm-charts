@@ -287,6 +287,18 @@ pmm3:
   # -- PMM configuration. All PMM chart values go under this key.
   pmm:
     nameOverride: pmm3
+# -- Configuration for OpenEverest plugins bundled with this chart.
+plugins:
+  # -- Plugin Hub settings.
+  hub:
+    # -- If set, deploys the OpenEverest Plugin Hub (`plugin-hub` sub-chart)
+    # in the release namespace alongside Everest. Disable with
+    # `--set plugins.hub.enabled=false`.
+    enabled: true
+# -- Values forwarded to the `plugin-hub` sub-chart.
+# Refer to the upstream chart for the full list of configurable values:
+# https://ghcr.io/openeverest/charts/plugin-hub
+plugin-hub: {}
 # DO NOT CHANGE.
 # We set this to `false` to prevent the CRDs from being rendered as a template.
 # The CRDs are already installed as a part of the crds/ directory via the sub-chart.
