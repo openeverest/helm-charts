@@ -191,6 +191,25 @@ entries:
     - https://github.com/openeverest/helm-charts/releases/download/everest-crds-2.0.0-dev.1/everest-crds-2.0.0-dev.1.tgz
     version: 2.0.0-dev.1
   - apiVersion: v2
+    appVersion: 1.16.0-rc1
+    created: "2026-07-07T11:52:29.882028768Z"
+    description: A Helm chart for Everest Custom Resource Definitions (CRDs).
+    digest: 30dbc36564d1e532db282c756f0851684c5a0a1f9dd4e400a6b02dfd4d9ca79a
+    maintainers:
+    - email: mayank.shah@percona.com
+      name: mayankshah1607
+    - email: oksana.grishchenko@percona.com
+      name: oksana-grishchenko
+    - email: diogo.recharte@percona.com
+      name: recharte
+    - email: maxim.kondratenko@percona.com
+      name: maxkondr
+    name: everest-crds
+    type: application
+    urls:
+    - https://github.com/openeverest/helm-charts/releases/download/everest-crds-1.16.0-rc1/everest-crds-1.16.0-rc1.tgz
+    version: 1.16.0-rc1
+  - apiVersion: v2
     appVersion: 1.15.2
     created: "2026-05-06T08:33:20.326081289Z"
     description: A Helm chart for Everest Custom Resource Definitions (CRDs).
@@ -343,6 +362,30 @@ entries:
     - everest-crds-1.13.1.tgz
     version: 1.13.1
   everest-db-namespace:
+  - apiVersion: v2
+    appVersion: 1.16.0-rc1
+    created: "2026-07-07T11:52:30.062903526Z"
+    dependencies:
+    - name: common
+      repository: file://../common
+      version: 0.0.*
+    description: A sub-chart for provisioning Everest DB namespaces.
+    digest: d8b7410b9f8c4f1a39f6a6fe28d2919c0d35cb006f71982bf7f0df54db1ffc7d
+    kubeVersion: '>= 1.27.0-0'
+    maintainers:
+    - email: mayank.shah@percona.com
+      name: mayankshah1607
+    - email: oksana.grishchenko@percona.com
+      name: oksana-grishchenko
+    - email: diogo.recharte@percona.com
+      name: recharte
+    - email: maxim.kondratenko@percona.com
+      name: maxkondr
+    name: everest-db-namespace
+    type: application
+    urls:
+    - https://github.com/openeverest/helm-charts/releases/download/everest-db-namespace-1.16.0-rc1/everest-db-namespace-1.16.0-rc1.tgz
+    version: 1.16.0-rc1
   - apiVersion: v2
     appVersion: 1.15.2
     created: "2026-05-06T08:33:20.55463875Z"
@@ -1228,4 +1271,4 @@ entries:
     urls:
     - openeverest-1.13.1.tgz
     version: 1.13.1
-generated: "2026-07-07T11:52:24.071132251Z"
+generated: "2026-07-07T11:52:30.06303999Z"
