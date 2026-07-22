@@ -47,4 +47,4 @@ dependencies:
   - name: plugin-hub
     repository: "oci://ghcr.io/openeverest/charts"
     condition: "plugins.hub.enabled"
-    version: "0.1.11"
+    version: "0.1.*"
