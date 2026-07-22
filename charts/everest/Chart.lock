@@ -19,6 +19,6 @@ dependencies:
   version: 1.14.0
 - name: plugin-hub
   repository: oci://ghcr.io/openeverest/charts
-  version: 0.1.11
-digest: sha256:5c65dc11f3deacce19aa58ecaf6072dc3259b70a7ba2ffaaec8b91e0eb691ac4
-generated: "2026-07-02T10:57:30.293435+07:00"
+  version: 0.1.12
+digest: sha256:39f6820d1e213c1ca7c5e2f046ea2de00043635230f3401694116a13bdea9f15
+generated: "2026-07-23T00:01:02.352888+03:00"
