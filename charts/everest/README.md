@@ -141,6 +141,10 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | ingress.ingressClassName | string | `""` | Ingress class name. This is used to specify which ingress controller should handle this ingress. |
 | ingress.tls | list | `[]` | Each entry in the list specifies a TLS certificate and the hosts it applies to. |
 | namespaceOverride | string | `""` | Namespace override. Defaults to the value of .Release.Namespace. |
+| plugin-hub | object | `{}` | Values forwarded to the `plugin-hub` sub-chart. Refer to the upstream chart for the full list of configurable values: https://ghcr.io/openeverest/charts/plugin-hub |
+| plugins | object | `{"hub":{"enabled":true}}` | Configuration for OpenEverest plugins bundled with this chart. |
+| plugins.hub | object | `{"enabled":true}` | Plugin Hub settings. |
+| plugins.hub.enabled | bool | `true` | If set, deploys the OpenEverest Plugin Hub (`plugin-hub` sub-chart) in the release namespace alongside Everest. Disable with `--set plugins.hub.enabled=false`. |
 | pmm | object | `{"enabled":false,"nameOverride":"pmm"}` | PMM settings. |
 | pmm.enabled | bool | `false` | If set, deploys PMM2 in the release namespace. |
 | pmm3.enabled | bool | `false` | If set, deploys PMM3 in the release namespace. |
