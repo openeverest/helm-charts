@@ -1,5 +1,5 @@
 {{- if .Values.upgrade.preflightChecks }}
-{{- include "everest.preUpgradeChecks" (dict "namespace" (include "everest.namespace" .) "version" .Chart.AppVersion "versionMetadataURL" (include "everest.versionMetadataURL" .) "image" .Values.hooks.upgradeChecks.image) }}
+{{- include "everest.preUpgradeChecks" (dict "namespace" (include "everest.namespace" .) "version" .Chart.AppVersion "versionMetadataURL" (include "everest.versionMetadataURL" .) "image" .Values.hooks.upgradeChecks.image "global" .Values.global) }}
 {{- end }}
 ---
 {{- /*
@@ -12,8 +12,8 @@
 {{- end }}
 
 {{- /* #  Cleanup all default pod scheduling policies during uninstall. */}}
-{{- include "everest.pspCleanup" (dict "namespace" (include "everest.namespace" .) "image" (.Values.hooks.pspCleanup.image | default .Values.hooks.image)) }}
+{{- include "everest.pspCleanup" (dict "namespace" (include "everest.namespace" .) "image" (.Values.hooks.pspCleanup.image | default .Values.hooks.image) "global" .Values.global) }}
 
 {{- /* #  Cleanup all default load balancer configs during uninstall. */}}
-{{- include "everest.lbcCleanup" (dict "namespace" (include "everest.namespace" .) "image" (.Values.hooks.lbcCleanup.image | default .Values.hooks.image)) }}
+{{- include "everest.lbcCleanup" (dict "namespace" (include "everest.namespace" .) "image" (.Values.hooks.lbcCleanup.image | default .Values.hooks.image) "global" .Values.global) }}
 ---

@@ -27,6 +27,9 @@ Kubernetes: `>= 1.27.0-0`
 |-----|------|---------|-------------|
 | cleanupOnUninstall | bool | `true` | If set, cleans up the DB resources on uninstall. |
 | compatibility.openshift | bool | `false` | If set, enable OpenShift compatibility. |
+| global.httpProxy | string | `""` | HTTP proxy URL injected as HTTP_PROXY into all Helm chart hook job containers. |
+| global.httpsProxy | string | `""` | HTTPS proxy URL injected as HTTPS_PROXY into all Helm chart hook job containers. |
+| global.noProxy | string | `""` | Comma-separated list of hosts to exclude from proxying, injected as NO_PROXY into all Helm chart hook job containers. Since some hook jobs call kubectl against the in-cluster API server, include its address/CIDR here if it would otherwise be proxied. |
 | hooks | object | `{"csvCleanup":{},"dbResourcesCleanup":{},"image":"percona/everest-helmtools:0.0.1","operatorsInstaller":{}}` | Configuration for Helm chart hooks. |
 | hooks.csvCleanup | object | `{}` | Configuration for the ClusterServiceVersion cleanup hook. |
 | hooks.dbResourcesCleanup | object | `{}` | Configuration for the DB resources cleanup hook. |

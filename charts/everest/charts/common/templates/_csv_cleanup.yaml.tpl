@@ -1,6 +1,7 @@
 #
 # @param .namespace     The namespace where the operator is installed
 # @param .image         The image to use for running the hook Job
+# @param .global        Global values, e.g. httpProxy/httpsProxy/noProxy
 #
 {{- define "everest.csvCleanup" }}
 {{- $hookName := printf "everest-helm-pre-delete-hook" }}
@@ -68,6 +69,19 @@ spec:
             - |
               kubectl delete subscription -n {{ .namespace }} --all --wait
               kubectl delete csv -n {{ .namespace }} --all --wait
+          env:
+            {{- if .global.httpProxy }}
+            - name: HTTP_PROXY
+              value: {{ .global.httpProxy | quote }}
+            {{- end }}
+            {{- if .global.httpsProxy }}
+            - name: HTTPS_PROXY
+              value: {{ .global.httpsProxy | quote }}
+            {{- end }}
+            {{- if .global.noProxy }}
+            - name: NO_PROXY
+              value: {{ .global.noProxy | quote }}
+            {{- end }}
       dnsPolicy: ClusterFirst
       restartPolicy: OnFailure
       serviceAccount: {{ $hookName }}

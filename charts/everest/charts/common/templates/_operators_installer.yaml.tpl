@@ -1,6 +1,7 @@
 #
 # @param .namespace     The namespace where the operators are installed
 # @param .image         The image to use for running the hook Job
+# @param .global        Global values, e.g. httpProxy/httpsProxy/noProxy
 #
 {{- define "everest.operatorsInstaller" }}
 {{- $hookName := "everest-operators-installer" }}
@@ -114,6 +115,19 @@ spec:
                 echo "Waiting for CSV $csv to succeed"
                 kubectl wait --for=jsonpath='.status.phase'=Succeeded clusterserviceversions.operators.coreos.com/$csv -n {{ .namespace }} --timeout=600s
               done
+          env:
+            {{- if .global.httpProxy }}
+            - name: HTTP_PROXY
+              value: {{ .global.httpProxy | quote }}
+            {{- end }}
+            {{- if .global.httpsProxy }}
+            - name: HTTPS_PROXY
+              value: {{ .global.httpsProxy | quote }}
+            {{- end }}
+            {{- if .global.noProxy }}
+            - name: NO_PROXY
+              value: {{ .global.noProxy | quote }}
+            {{- end }}
       dnsPolicy: ClusterFirst
       restartPolicy: OnFailure
       serviceAccount: {{ $hookName }}

@@ -1,6 +1,7 @@
 #
 # @param .namespace     The namespace where DB and its resources are deployed
 # @param .image         The image to use for running the hook Job
+# @param .global        Global values, e.g. httpProxy/httpsProxy/noProxy
 #
 {{- define "everest.dbResourcesCleanup" }}
 {{- $hookName := printf "everest-helm-pre-delete-db-resource-cleanup" }}
@@ -82,6 +83,19 @@ spec:
                 
               echo "Deleting MonitoringConfigs"
               kubectl delete monitoringconfigs -n {{ .namespace }} --all --wait
+          env:
+            {{- if .global.httpProxy }}
+            - name: HTTP_PROXY
+              value: {{ .global.httpProxy | quote }}
+            {{- end }}
+            {{- if .global.httpsProxy }}
+            - name: HTTPS_PROXY
+              value: {{ .global.httpsProxy | quote }}
+            {{- end }}
+            {{- if .global.noProxy }}
+            - name: NO_PROXY
+              value: {{ .global.noProxy | quote }}
+            {{- end }}
       dnsPolicy: ClusterFirst
       restartPolicy: OnFailure
       serviceAccount: {{ $hookName }}

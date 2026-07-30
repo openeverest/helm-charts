@@ -18,6 +18,15 @@ hooks:
     # -- Image for the upgrade checks hook job.
     # This image must have everestctl pre-installed to support air-gapped environments.
     image: "ghcr.io/openeverest/everestctl"
+global:
+  # -- HTTP proxy URL injected as HTTP_PROXY into all Helm chart hook job containers.
+  httpProxy: ""
+  # -- HTTPS proxy URL injected as HTTPS_PROXY into all Helm chart hook job containers.
+  httpsProxy: ""
+  # -- Comma-separated list of hosts to exclude from proxying, injected as NO_PROXY into
+  # all Helm chart hook job containers. Since some hook jobs call kubectl against the
+  # in-cluster API server, include its address/CIDR here if it would otherwise be proxied.
+  noProxy: ""
 compatibility:
   # -- Enable OpenShift compatibility.
   openshift: false
