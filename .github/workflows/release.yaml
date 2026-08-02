@@ -10,6 +10,9 @@ on:
         default: main
         description: "Branch to checkout for chart release"
 
+permissions:
+  contents: write
+
 jobs:
   release:
     env:
