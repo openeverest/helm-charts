@@ -11,10 +11,12 @@ on:
         description: "Branch to checkout for chart release"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   release:
+    permissions:
+      contents: write
     env:
       VERSION: ${{ github.event.inputs.version }}
       # Is set if the VERSION corresponds to an RC.
@@ -39,6 +41,11 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
+      - name: Install Helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4.3.1
+        with:
+          version: v3.14.0
+
       - name: Prepare RC
         if: ${{ env.IS_RC == '1' }}
         run: |
@@ -50,11 +57,6 @@ jobs:
         run: |
           cd charts/everest
           make release
-
-      - name: Install Helm
-        uses: azure/setup-helm@18bc76811624f360dbd7f18c2d4ecb32c7b87bab # v1.1
-        with:
-          version: v3.4.0
 
       - name: Release chart
         uses: helm/chart-releaser-action@a917fd15b20e8b64b94d9158ad54cd6345335584 # v1.6.0
