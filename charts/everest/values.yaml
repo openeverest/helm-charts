@@ -351,6 +351,23 @@ pmm3:
   # -- PMM configuration. All PMM chart values go under this key.
   pmm:
     nameOverride: pmm3
+    # -- Pod-level security context for the PMM StatefulSet.
+    # We nullify runAsUser, runAsGroup, and fsGroup to drop upstream hardcoded defaults.
+    # This allows OpenShift SCCs to dynamically assign UIDs from the namespace's range.
+    podSecurityContext:
+      runAsUser: null
+      runAsGroup: null
+      fsGroup: null
+      runAsNonRoot: true
+      fsGroupChangePolicy: OnRootMismatch
+      seccompProfile:
+        type: RuntimeDefault
+    # -- Container-level security context for the PMM container.
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      allowPrivilegeEscalation: false
 # DO NOT CHANGE.
 # We set this to `false` to prevent the CRDs from being rendered as a template.
 # The CRDs are already installed as a part of the crds/ directory via the sub-chart.
