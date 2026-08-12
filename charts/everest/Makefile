@@ -87,6 +87,11 @@ docs-gen:
 test:
 	$(HELM) template test . --namespace everest-system
 	$(HELM) template test . --namespace everest-system -f test/test-values.yaml
+	$(MAKE) test-pmm3
+
+.PHONY: test-pmm3
+test-pmm3:
+	HELM=$(HELM) bash ./charts/pmm3/test/assert-openshift-scc.sh
 
 .PHONY: link-crds
 link-crds:
