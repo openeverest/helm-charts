@@ -182,7 +182,7 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | gatewayAPI.hostnames | list | `[]` | Hostnames for the HTTPRoute. If empty, matches all hostnames on the parent Gateway. |
 | gatewayAPI.parentRefs | list | `[]` | Parent Gateway references. At least one is required when enabled. Each entry references an existing Gateway that should route traffic to Everest. |
 | gatewayAPI.rules | list | `[]` | Routing rules. If empty, a default catch-all rule routing to the Everest service is created. |
-| hooks | object | `{"image":"percona/everest-helmtools:0.0.1","lbcCleanup":{},"pspCleanup":{},"upgradeChecks":{"image":"ghcr.io/openeverest/everestctl"}}` | Configuration for Helm chart hooks. |
+| hooks | object | `{"image":"ghcr.io/openeverest/openeverest-helmtools:0.0.1","lbcCleanup":{},"pspCleanup":{},"upgradeChecks":{"image":"ghcr.io/openeverest/everestctl"}}` | Configuration for Helm chart hooks. |
 | hooks.image | string |  | Default image to use for the Helm chart hooks job. |
 | hooks.lbcCleanup | object | `{}` | Configuration for LoadBalancerConfig clean-up hook. |
 | hooks.pspCleanup | object | `{}` | Configuration for PodSchedulingPolicy clean-up hook. |
