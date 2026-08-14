@@ -3,7 +3,7 @@ hooks:
   # -- Default image to use for the Helm chart hooks job.
   image:
     # -- Repository for the hooks image.
-    repository: "percona/everest-helmtools"
+    repository: "ghcr.io/openeverest/openeverest-helmtools"
     # -- Tag for the hooks image.
     tag: "0.0.1"
     # -- Pull policy for the hooks image.
