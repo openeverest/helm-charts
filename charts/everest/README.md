@@ -127,10 +127,10 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | controller.webhook.certs | object | `{"ca.crt":"","tls.crt":"","tls.key":""}` | Certificates to use for the webhook server. The values must be base64 encoded. If unset, uses self-signed certificates. |
 | controller.webhook.preserveTLSCerts | bool |  | If set to true, preserves existing TLS Certificate Secrets during upgrades. This setting is ignored if certificates are explicitly provided in controller.webhook.certs, in which case the specified certificates are used instead. This setting has no effect during installation. |
 | createMonitoringResources | bool | `true` | If set, creates resources for Kubernetes monitoring. |
-| hooks | object | `{"image":{"pullPolicy":"IfNotPresent","repository":"percona/everest-helmtools","tag":"0.0.1"},"upgradeChecks":{"image":{"repository":"","tag":""}}}` | Configuration for Helm chart hooks. |
-| hooks.image | object | `{"pullPolicy":"IfNotPresent","repository":"percona/everest-helmtools","tag":"0.0.1"}` | Default image to use for the Helm chart hooks job. |
+| hooks | object | `{"image":{"pullPolicy":"IfNotPresent","repository":"ghcr.io/openeverest/openeverest-helmtools","tag":"0.0.1"},"upgradeChecks":{"image":{"repository":"","tag":""}}}` | Configuration for Helm chart hooks. |
+| hooks.image | object | `{"pullPolicy":"IfNotPresent","repository":"ghcr.io/openeverest/openeverest-helmtools","tag":"0.0.1"}` | Default image to use for the Helm chart hooks job. |
 | hooks.image.pullPolicy | string | `"IfNotPresent"` | Pull policy for the hooks image. |
-| hooks.image.repository | string | `"percona/everest-helmtools"` | Repository for the hooks image. |
+| hooks.image.repository | string | `"ghcr.io/openeverest/openeverest-helmtools"` | Repository for the hooks image. |
 | hooks.image.tag | string | `"0.0.1"` | Tag for the hooks image. |
 | hooks.upgradeChecks | object | `{"image":{"repository":"","tag":""}}` | Configuration for the upgrade checks hook. |
 | hooks.upgradeChecks.image.repository | string | `""` | Repository for the upgrade checks image. Defaults to `hooks.image.repository` if not set. |
