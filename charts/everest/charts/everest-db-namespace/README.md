@@ -31,9 +31,10 @@ Kubernetes: `>= 1.27.0-0`
 | global.httpsProxy | string | `""` | HTTPS proxy URL injected as HTTPS_PROXY into all Helm chart hook job containers. |
 | global.noProxy | string | `""` | Comma-separated list of hosts to exclude from proxying, injected as NO_PROXY into all Helm chart hook job containers. Since some hook jobs call kubectl against the in-cluster API server, include its address/CIDR here if it would otherwise be proxied. |
 | hooks | object | `{"csvCleanup":{},"dbResourcesCleanup":{},"image":"percona/everest-helmtools:0.0.1","operatorsInstaller":{}}` | Configuration for Helm chart hooks. |
+| hooks | object | `{"csvCleanup":{},"dbResourcesCleanup":{},"image":"ghcr.io/openeverest/openeverest-helmtools:0.0.1","operatorsInstaller":{}}` | Configuration for Helm chart hooks. |
 | hooks.csvCleanup | object | `{}` | Configuration for the ClusterServiceVersion cleanup hook. |
 | hooks.dbResourcesCleanup | object | `{}` | Configuration for the DB resources cleanup hook. |
-| hooks.image | string | `percona/everest-helmtools:0.0.1` | Default image to use for the Helm chart hooks job. |
+| hooks.image | string | `ghcr.io/openeverest/openeverest-helmtools:0.0.1` | Default image to use for the Helm chart hooks job. |
 | hooks.operatorsInstaller | object | `{}` | Configuration for the operators installer hook. |
 | namespaceOverride | string | `""` | Namespace override. Defaults to the value of .Release.Namespace. |
 | postgresql | bool | `true` | If set, installs the Percona Postgresql Server operator. |

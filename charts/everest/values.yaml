@@ -1,8 +1,8 @@
 # -- Configuration for Helm chart hooks.
 hooks:
   # -- Default image to use for the Helm chart hooks job.
-  # @default -- `percona/everest-helmtools:0.0.1`
-  image: "percona/everest-helmtools:0.0.1"
+  # @default -- `ghcr.io/openeverest/openeverest-helmtools:0.0.1`
+  image: "ghcr.io/openeverest/openeverest-helmtools:0.0.1"
   # -- Configuration for PodSchedulingPolicy clean-up hook.
   pspCleanup: {}
   # Image to use for the hook job.

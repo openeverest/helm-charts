@@ -186,6 +186,7 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | global.httpsProxy | string | `""` | HTTPS proxy URL injected as HTTPS_PROXY into all Helm chart hook job containers. |
 | global.noProxy | string | `""` | Comma-separated list of hosts to exclude from proxying, injected as NO_PROXY into all Helm chart hook job containers. Since some hook jobs call kubectl against the in-cluster API server, include its address/CIDR here if it would otherwise be proxied. |
 | hooks | object | `{"image":"percona/everest-helmtools:0.0.1","lbcCleanup":{},"pspCleanup":{},"upgradeChecks":{"image":"ghcr.io/openeverest/everestctl"}}` | Configuration for Helm chart hooks. |
+| hooks | object | `{"image":"ghcr.io/openeverest/openeverest-helmtools:0.0.1","lbcCleanup":{},"pspCleanup":{},"upgradeChecks":{"image":"ghcr.io/openeverest/everestctl"}}` | Configuration for Helm chart hooks. |
 | hooks.image | string |  | Default image to use for the Helm chart hooks job. |
 | hooks.lbcCleanup | object | `{}` | Configuration for LoadBalancerConfig clean-up hook. |
 | hooks.pspCleanup | object | `{}` | Configuration for PodSchedulingPolicy clean-up hook. |
