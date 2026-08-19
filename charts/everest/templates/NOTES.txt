@@ -54,21 +54,14 @@ To access the web UI, set up port-forwarding and visit {{ $pfUrl }} in your brow
 INSTALL A PROVIDER TO MANAGE DATABASES
 =======================================
 
-OpenEverest v2 uses a pluggable provider architecture.
-Install a provider to manage your database.
-
-Install Percona Server for MongoDB provider:
+OpenEverest v2 uses a modular architecture.
+As an example you can install Percona Server for MongoDB provider:
 
     helm install provider-percona-server-mongodb \
       oci://ghcr.io/openeverest/charts/provider-percona-server-mongodb \
       -n {{ .Release.Namespace }}
 
-→ https://openeverest.io/provider-percona-server-mongodb/
-
-Or develop your own custom provider:
-
-→ https://github.com/openeverest/provider-sdk/blob/main/PROVIDER_DEVELOPMENT.md
-
+See other providers and plugins on the website https://openeverest.io/extensions/ or in the web UI.
 {{- end }}
 
 {{- if .Release.IsUpgrade }}
