@@ -1,8 +1,8 @@
 apiVersion: v2
 name: openeverest
 description: A cloud-native database platform
-version: "1.14.0"
-appVersion: "1.14.0"
+version: "2.0.0-dev.2"
+appVersion: "2.0.0-dev.2"
 type: application
 kubeVersion: '>= 1.27.0-0'
 annotations:
@@ -43,7 +43,7 @@ dependencies:
   - name: everest-crds
     repository: "file://charts/everest-crds"
     condition: "everest-crds.enabled"
-    version: "1.14.0"
+    version: "2.0.0-dev.2"
   - name: plugin-hub
     repository: "oci://ghcr.io/openeverest/charts"
     condition: "plugins.hub.enabled"

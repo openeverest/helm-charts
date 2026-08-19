@@ -2,8 +2,8 @@ apiVersion: v2
 name: everest-crds
 description: A Helm chart for Everest Custom Resource Definitions (CRDs).
 type: application
-version: "1.14.0"
-appVersion: "1.14.0"
+version: "2.0.0-dev.2"
+appVersion: "2.0.0-dev.2"
 maintainers:
   - name: mayankshah1607
     email: mayank.shah@percona.com

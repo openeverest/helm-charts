@@ -4,7 +4,7 @@ HELM ?= helm
 IMAGE_PREFIX ?= ghcr.io/openeverest
 EVEREST_SERVER_IMAGE_NAME ?= openeverest
 TELEMETRY ?= true
-VERSION ?= 1.14.0
+VERSION ?= 2.0.0-dev.2
 CHART_VERSION ?= $(VERSION)
 GH_PAGES_WORKTREE ?= /tmp/helm-gh-pages
 
