@@ -2,7 +2,6 @@
 #
 # @param .namespace     The namespace where Everest server is installed
 # @param .image         The image to use for running the hook Job
-# @param .global        Global values, e.g. httpProxy/httpsProxy/noProxy
 #
 {{- define "everest.lbcCleanup" }}
 {{- $hookName := printf "everest-helm-lbc-cleanup-hook" }}
@@ -75,19 +74,6 @@ spec:
                 kubectl patch $lbc -p '{"metadata":{"finalizers":[]}}' --type=merge || true
                 kubectl delete $lbc || true
               done
-          env:
-            {{- if .global.httpProxy }}
-            - name: HTTP_PROXY
-              value: {{ .global.httpProxy | quote }}
-            {{- end }}
-            {{- if .global.httpsProxy }}
-            - name: HTTPS_PROXY
-              value: {{ .global.httpsProxy | quote }}
-            {{- end }}
-            {{- if .global.noProxy }}
-            - name: NO_PROXY
-              value: {{ .global.noProxy | quote }}
-            {{- end }}
       dnsPolicy: ClusterFirst
       restartPolicy: OnFailure
       serviceAccount: {{ $hookName }}

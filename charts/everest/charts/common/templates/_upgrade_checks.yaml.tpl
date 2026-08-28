@@ -108,19 +108,21 @@ spec:
             - |
               echo "Checking requirements for upgrade to version {{ .version }}"
               everestctl upgrade --in-cluster --dry-run --version-metadata-url={{ .versionMetadataURL }} --kubeconfig=""
+          {{- if or .global.httpProxy .global.httpsProxy .global.noProxy }}
           env:
-            {{- if .global.httpProxy }}
+            {{- with .global.httpProxy }}
             - name: HTTP_PROXY
-              value: {{ .global.httpProxy | quote }}
+              value: {{ . | quote }}
             {{- end }}
-            {{- if .global.httpsProxy }}
+            {{- with .global.httpsProxy }}
             - name: HTTPS_PROXY
-              value: {{ .global.httpsProxy | quote }}
+              value: {{ . | quote }}
             {{- end }}
-            {{- if .global.noProxy }}
+            {{- with .global.noProxy }}
             - name: NO_PROXY
-              value: {{ .global.noProxy | quote }}
+              value: {{ . | quote }}
             {{- end }}
+          {{- end }}
       dnsPolicy: ClusterFirst
       restartPolicy: OnFailure
       terminationGracePeriodSeconds: 30

@@ -20,15 +20,6 @@ hooks:
     # If not set, uses the value of `hooks.image`.
     # image: ""
 
-global:
-  # -- HTTP proxy URL injected as HTTP_PROXY into all Helm chart hook job containers.
-  httpProxy: ""
-  # -- HTTPS proxy URL injected as HTTPS_PROXY into all Helm chart hook job containers.
-  httpsProxy: ""
-  # -- Comma-separated list of hosts to exclude from proxying, injected as NO_PROXY into
-  # all Helm chart hook job containers. Since some hook jobs call kubectl against the
-  # in-cluster API server, include its address/CIDR here if it would otherwise be proxied.
-  noProxy: ""
 compatibility:
   # -- If set, enable OpenShift compatibility.
   openshift: false

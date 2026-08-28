@@ -2,7 +2,6 @@
 #
 # @param .namespace     The namespace where Everest server is installed
 # @param .image         The image to use for running the hook Job
-# @param .global        Global values, e.g. httpProxy/httpsProxy/noProxy
 #
 {{- define "everest.pspCleanup" }}
 {{- $hookName := printf "everest-helm-psp-cleanup-hook" }}
@@ -76,19 +75,6 @@ spec:
                 kubectl patch podschedulingpolicy/$pspName -p '{"metadata":{"finalizers":[]}}' --type=merge
                 kubectl delete $pspName
               done
-          env:
-            {{- if .global.httpProxy }}
-            - name: HTTP_PROXY
-              value: {{ .global.httpProxy | quote }}
-            {{- end }}
-            {{- if .global.httpsProxy }}
-            - name: HTTPS_PROXY
-              value: {{ .global.httpsProxy | quote }}
-            {{- end }}
-            {{- if .global.noProxy }}
-            - name: NO_PROXY
-              value: {{ .global.noProxy | quote }}
-            {{- end }}
       dnsPolicy: ClusterFirst
       restartPolicy: OnFailure
       serviceAccount: {{ $hookName }}

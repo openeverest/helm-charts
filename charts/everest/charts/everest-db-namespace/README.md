@@ -1,6 +1,6 @@
 # everest-db-namespace
 
-![Version: 1.14.0](https://img.shields.io/badge/Version-1.14.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.14.0](https://img.shields.io/badge/AppVersion-1.14.0-informational?style=flat-square)
+![Version: 1.15.0](https://img.shields.io/badge/Version-1.15.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.15.0](https://img.shields.io/badge/AppVersion-1.15.0-informational?style=flat-square)
 
 A sub-chart for provisioning Everest DB namespaces.
 
@@ -27,10 +27,6 @@ Kubernetes: `>= 1.27.0-0`
 |-----|------|---------|-------------|
 | cleanupOnUninstall | bool | `true` | If set, cleans up the DB resources on uninstall. |
 | compatibility.openshift | bool | `false` | If set, enable OpenShift compatibility. |
-| global.httpProxy | string | `""` | HTTP proxy URL injected as HTTP_PROXY into all Helm chart hook job containers. |
-| global.httpsProxy | string | `""` | HTTPS proxy URL injected as HTTPS_PROXY into all Helm chart hook job containers. |
-| global.noProxy | string | `""` | Comma-separated list of hosts to exclude from proxying, injected as NO_PROXY into all Helm chart hook job containers. Since some hook jobs call kubectl against the in-cluster API server, include its address/CIDR here if it would otherwise be proxied. |
-| hooks | object | `{"csvCleanup":{},"dbResourcesCleanup":{},"image":"percona/everest-helmtools:0.0.1","operatorsInstaller":{}}` | Configuration for Helm chart hooks. |
 | hooks | object | `{"csvCleanup":{},"dbResourcesCleanup":{},"image":"ghcr.io/openeverest/openeverest-helmtools:0.0.1","operatorsInstaller":{}}` | Configuration for Helm chart hooks. |
 | hooks.csvCleanup | object | `{}` | Configuration for the ClusterServiceVersion cleanup hook. |
 | hooks.dbResourcesCleanup | object | `{}` | Configuration for the DB resources cleanup hook. |
