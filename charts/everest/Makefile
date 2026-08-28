@@ -87,7 +87,7 @@ docs-gen:
 test:
 	$(HELM) template test . --namespace everest-system
 	$(HELM) template test . --namespace everest-system -f test/test-values.yaml
-	$(HELM) template test . --namespace everest-system --set global.httpsProxy=http://proxy.example.com:3128 --set global.noProxy=10.96.0.1
+	$(HELM) template test . --namespace everest-system --set proxy.httpProxy=http://proxy.example.com:3128 --set proxy.httpsProxy=http://proxy.example.com:3128 --set proxy.noProxy=10.96.0.1
 
 .PHONY: link-crds
 link-crds:

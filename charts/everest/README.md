@@ -124,7 +124,7 @@ helm upgrade --install everest-crds \
 >
 > ```sh
 > invalid ownership metadata; label validation error: missing key "app.kubernetes.io/managed-by": must be set to "Helm";
-> annotation validation error: missing key "meta.helm.sh/release-name": must be set to "everest-crds"; 
+> annotation validation error: missing key "meta.helm.sh/release-name": must be set to "everest-crds";
 > annotation validation error: missing key "meta.helm.sh/release-namespace": must be set to "everest-system"
 > ```
 >
@@ -153,7 +153,7 @@ helm upgrade everest openeverest/everest-db-namespace --namespace [DB NAMESPACE]
 
 Notes:
 * :warning: When specifying values during an upgrade (i.e, using `--set`, `--set-json`, `--values`, etc.), Helm resets all the other values
-to the defaults built into the chart. To preserve the previously set values, you must use the `--reuse-values` flag. 
+to the defaults built into the chart. To preserve the previously set values, you must use the `--reuse-values` flag.
 Alternatively, provide the full set of values, including any overrides applied during installation.
 * It is recommended to upgrade 1 minor release at a time, otherwise you may run into unexpected issues.
 * It is recommended to upgrade to the latest patch release first before upgrading to the next minor release.
@@ -182,9 +182,6 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | gatewayAPI.hostnames | list | `[]` | Hostnames for the HTTPRoute. If empty, matches all hostnames on the parent Gateway. |
 | gatewayAPI.parentRefs | list | `[]` | Parent Gateway references. At least one is required when enabled. Each entry references an existing Gateway that should route traffic to Everest. |
 | gatewayAPI.rules | list | `[]` | Routing rules. If empty, a default catch-all rule routing to the Everest service is created. |
-| global.httpProxy | string | `""` | HTTP proxy URL injected as HTTP_PROXY into the upgrade-checks hook job container. |
-| global.httpsProxy | string | `""` | HTTPS proxy URL injected as HTTPS_PROXY into the upgrade-checks hook job container. |
-| global.noProxy | string | `""` | Comma-separated list of hosts to exclude from proxying, injected as NO_PROXY into the upgrade-checks hook job container. Since that hook also calls kubectl (via `everestctl upgrade --in-cluster`) against the in-cluster API server, include its address/CIDR here if it would otherwise be proxied. |
 | hooks | object | `{"image":"ghcr.io/openeverest/openeverest-helmtools:0.0.1","lbcCleanup":{},"pspCleanup":{},"upgradeChecks":{"image":"ghcr.io/openeverest/everestctl"}}` | Configuration for Helm chart hooks. |
 | hooks.image | string |  | Default image to use for the Helm chart hooks job. |
 | hooks.lbcCleanup | object | `{}` | Configuration for LoadBalancerConfig clean-up hook. |
@@ -223,6 +220,9 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | pmm.enabled | bool | `false` | If set, deploys PMM2 in the release namespace. |
 | pmm3.enabled | bool | `false` | If set, deploys PMM3 in the release namespace. |
 | pmm3.pmm | object | `{"nameOverride":"pmm3"}` | PMM configuration. All PMM chart values go under this key. |
+| proxy.httpProxy | string | `""` | HTTP proxy URL. Injected as HTTP_PROXY into the Everest server and operator containers, the upgrade-checks hook job, and (via `everest-db-namespace`) the PXC/PSMDB/PG operator Subscriptions. |
+| proxy.httpsProxy | string | `""` | HTTPS proxy URL. Injected as HTTPS_PROXY into the same set of workloads. |
+| proxy.noProxy | string | `""` | Comma-separated list of hosts to exclude from proxying. Injected as NO_PROXY into the same set of workloads. The upgrade-checks hook also calls kubectl (via `everestctl upgrade --in-cluster`) against the in-cluster API server, so include its address/CIDR here if it would otherwise be proxied. |
 | server.affinity | object | `{}` | Affinity settings for the server pod. |
 | server.apiRequestsRateLimit | int | `100` | Set the allowed number of requests per second. |
 | server.env | list | `[]` | Additional environment variables to pass to the server deployment. |

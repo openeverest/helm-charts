@@ -124,7 +124,7 @@ helm upgrade --install everest-crds \
 >
 > ```sh
 > invalid ownership metadata; label validation error: missing key "app.kubernetes.io/managed-by": must be set to "Helm";
-> annotation validation error: missing key "meta.helm.sh/release-name": must be set to "everest-crds"; 
+> annotation validation error: missing key "meta.helm.sh/release-name": must be set to "everest-crds";
 > annotation validation error: missing key "meta.helm.sh/release-namespace": must be set to "everest-system"
 > ```
 >
@@ -153,7 +153,7 @@ helm upgrade everest openeverest/everest-db-namespace --namespace [DB NAMESPACE]
 
 Notes:
 * :warning: When specifying values during an upgrade (i.e, using `--set`, `--set-json`, `--values`, etc.), Helm resets all the other values
-to the defaults built into the chart. To preserve the previously set values, you must use the `--reuse-values` flag. 
+to the defaults built into the chart. To preserve the previously set values, you must use the `--reuse-values` flag.
 Alternatively, provide the full set of values, including any overrides applied during installation.
 * It is recommended to upgrade 1 minor release at a time, otherwise you may run into unexpected issues.
 * It is recommended to upgrade to the latest patch release first before upgrading to the next minor release.

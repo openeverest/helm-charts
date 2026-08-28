@@ -20,6 +20,16 @@ hooks:
     # If not set, uses the value of `hooks.image`.
     # image: ""
 
+proxy:
+  # -- HTTP proxy URL. Injected as HTTP_PROXY into the PXC/PSMDB/PG operator Subscriptions.
+  # When this chart is installed as part of the parent openeverest chart, set this via
+  # `dbNamespace.proxy.httpProxy` instead.
+  httpProxy: ""
+  # -- HTTPS proxy URL. Injected as HTTPS_PROXY into the same Subscriptions.
+  httpsProxy: ""
+  # -- Comma-separated list of hosts to exclude from proxying. Injected as NO_PROXY into
+  # the same Subscriptions.
+  noProxy: ""
 compatibility:
   # -- If set, enable OpenShift compatibility.
   openshift: false

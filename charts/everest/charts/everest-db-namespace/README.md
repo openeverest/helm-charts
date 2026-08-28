@@ -34,6 +34,9 @@ Kubernetes: `>= 1.27.0-0`
 | hooks.operatorsInstaller | object | `{}` | Configuration for the operators installer hook. |
 | namespaceOverride | string | `""` | Namespace override. Defaults to the value of .Release.Namespace. |
 | postgresql | bool | `true` | If set, installs the Percona Postgresql Server operator. |
+| proxy.httpProxy | string | `""` | HTTP proxy URL. Injected as HTTP_PROXY into the PXC/PSMDB/PG operator Subscriptions. When this chart is installed as part of the parent openeverest chart, set this via `dbNamespace.proxy.httpProxy` instead. |
+| proxy.httpsProxy | string | `""` | HTTPS proxy URL. Injected as HTTPS_PROXY into the same Subscriptions. |
+| proxy.noProxy | string | `""` | Comma-separated list of hosts to exclude from proxying. Injected as NO_PROXY into the same Subscriptions. |
 | psmdb | bool | `true` | If set, installs the Percona Server MongoDB operator. |
 | pxc | bool | `true` | If set, installs the Percona XtraDB Cluster operator. |
 | telemetry | bool | `true` | If set, enabled sending telemetry information. |
