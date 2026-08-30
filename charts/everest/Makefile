@@ -80,6 +80,9 @@ test:
 .PHONY: link-crds
 link-crds:
 	@mkdir -p crds
+# Drop existing links first, so a CRD that is no longer generated does not keep
+# a dangling symlink here.
+	@rm -f crds/*.yaml
 	@for crd in charts/everest-crds/templates/*.yaml; do \
 		ln -sf "../$${crd}" crds/; \
 		echo "Linked $$crd → crds/"; \
@@ -88,8 +91,7 @@ link-crds:
 OPENEVEREST_REPO_URL ?= https://github.com/openeverest/openeverest
 CRD_DIR ?= config/crd
 CRD_VERSION ?= main
-# FIXME: this is temporary until we have a split between v1 and v2
-OPENEVEREST_CRD_VERSION ?= release-2.0
+OPENEVEREST_CRD_VERSION ?= main
 .PHONY: crds-gen
 crds-gen:
 	OPENEVEREST_REPO_URL=$(OPENEVEREST_REPO_URL) \
