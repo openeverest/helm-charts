@@ -2,3 +2,20 @@
 # All PMM configuration goes under the 'pmm' key
 pmm:
   nameOverride: pmm3
+  # -- Pod-level security context for the PMM StatefulSet.
+  # We nullify runAsUser, runAsGroup, and fsGroup to drop upstream hardcoded defaults.
+  # This allows OpenShift SCCs to dynamically assign UIDs from the namespace's range.
+  podSecurityContext:
+    runAsUser: null
+    runAsGroup: null
+    fsGroup: null
+    runAsNonRoot: true
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+  # -- Container-level security context for the PMM container.
+  securityContext:
+    capabilities:
+      drop:
+      - ALL
+    allowPrivilegeEscalation: false

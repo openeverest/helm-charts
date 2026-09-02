@@ -88,6 +88,11 @@ test:
 	$(HELM) template test . --namespace everest-system
 	$(HELM) template test . --namespace everest-system -f test/test-values.yaml
 	$(HELM) template test . --namespace everest-system --set proxy.httpProxy=http://proxy.example.com:3128 --set proxy.httpsProxy=http://proxy.example.com:3128 --set proxy.noProxy=10.96.0.1
+	$(MAKE) test-pmm3
+
+.PHONY: test-pmm3
+test-pmm3:
+	HELM=$(HELM) bash ./charts/pmm3/test/assert-openshift-scc.sh
 
 .PHONY: link-crds
 link-crds:
