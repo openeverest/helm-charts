@@ -182,7 +182,7 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | gatewayAPI.hostnames | list | `[]` | Hostnames for the HTTPRoute. If empty, matches all hostnames on the parent Gateway. |
 | gatewayAPI.parentRefs | list | `[]` | Parent Gateway references. At least one is required when enabled. Each entry references an existing Gateway that should route traffic to Everest. |
 | gatewayAPI.rules | list | `[]` | Routing rules. If empty, a default catch-all rule routing to the Everest service is created. |
-| hooks | object | `{"image":"percona/everest-helmtools:0.0.1","lbcCleanup":{},"pspCleanup":{},"upgradeChecks":{"image":"ghcr.io/openeverest/everestctl"}}` | Configuration for Helm chart hooks. |
+| hooks | object | `{"image":"ghcr.io/openeverest/openeverest-helmtools:0.0.1","lbcCleanup":{},"pspCleanup":{},"upgradeChecks":{"image":"ghcr.io/openeverest/everestctl"}}` | Configuration for Helm chart hooks. |
 | hooks.image | string |  | Default image to use for the Helm chart hooks job. |
 | hooks.lbcCleanup | object | `{}` | Configuration for LoadBalancerConfig clean-up hook. |
 | hooks.pspCleanup | object | `{}` | Configuration for PodSchedulingPolicy clean-up hook. |
@@ -220,6 +220,9 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | pmm.enabled | bool | `false` | If set, deploys PMM2 in the release namespace. |
 | pmm3.enabled | bool | `false` | If set, deploys PMM3 in the release namespace. |
 | pmm3.pmm | object | `{"nameOverride":"pmm3"}` | PMM configuration. All PMM chart values go under this key. |
+| proxy.httpProxy | string | `""` | HTTP proxy URL. Injected as HTTP_PROXY into the Everest server and operator containers, the upgrade-checks hook job, and (via `everest-db-namespace`) the PXC/PSMDB/PG operator Subscriptions. |
+| proxy.httpsProxy | string | `""` | HTTPS proxy URL. Injected as HTTPS_PROXY into the same set of workloads. |
+| proxy.noProxy | string | `""` | Comma-separated list of hosts to exclude from proxying. Injected as NO_PROXY into the same set of workloads. The upgrade-checks hook also calls kubectl (via `everestctl upgrade --in-cluster`) against the in-cluster API server, so include its address/CIDR here if it would otherwise be proxied. |
 | server.affinity | object | `{}` | Affinity settings for the server pod. |
 | server.apiRequestsRateLimit | int | `100` | Set the allowed number of requests per second. |
 | server.env | list | `[]` | Additional environment variables to pass to the server deployment. |

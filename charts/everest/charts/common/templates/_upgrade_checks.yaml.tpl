@@ -3,6 +3,7 @@
 # @param .version               Version to upgrade to
 # @param .versionMetadataURL    The URL of the version metadata service
 # @param .image                 The image to use for running the hook Job
+# @param .global                Global values, e.g. httpProxy/httpsProxy/noProxy
 #
 {{- define "everest.preUpgradeChecks" }}
 {{- $hookName := printf "everest-helm-pre-upgrade-hook" }}
@@ -107,6 +108,10 @@ spec:
             - |
               echo "Checking requirements for upgrade to version {{ .version }}"
               everestctl upgrade --in-cluster --dry-run --version-metadata-url={{ .versionMetadataURL }} --kubeconfig=""
+          {{- with include "everest.proxyEnv" .global | trim }}
+          env:
+            {{- . | nindent 12 }}
+          {{- end }}
       dnsPolicy: ClusterFirst
       restartPolicy: OnFailure
       terminationGracePeriodSeconds: 30

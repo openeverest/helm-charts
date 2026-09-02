@@ -1,5 +1,12 @@
 # OpenEverest Helm Charts
 
+> [!IMPORTANT]
+> **This branch carries the chart for OpenEverest v1 — the current released version.** It is actively maintained and still ships releases.
+>
+> It was called `main` until 18 August 2026, when the two lines swapped branches: v2 moved from `v2` to `main`, and v1 moved here. **Both lines are still developed** — only the branch names changed. The chart on `main` tracks the v2 [Developer Preview](https://openeverest.io/blog/v2-developer-preview-release/), which is not for production.
+>
+> Installing with `helm repo add openeverest` is unaffected: the published repository serves released chart versions, not branches.
+
 This repository contains the official Helm charts for [OpenEverest](https://openeverest.io/), the open-source cloud-native database platform.
 
 OpenEverest helps you deploy and manage databases on Kubernetes without the operational overhead. These charts provide a simple way to install and configure the OpenEverest control plane in your cluster.

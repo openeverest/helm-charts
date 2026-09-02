@@ -1,8 +1,8 @@
 # -- Configuration for Helm chart hooks.
 hooks:
   # -- Default image to use for the Helm chart hooks job.
-  # @default -- `percona/everest-helmtools:0.0.1`
-  image: "percona/everest-helmtools:0.0.1"
+  # @default -- `ghcr.io/openeverest/openeverest-helmtools:0.0.1`
+  image: "ghcr.io/openeverest/openeverest-helmtools:0.0.1"
   # -- Configuration for PodSchedulingPolicy clean-up hook.
   pspCleanup: {}
   # Image to use for the hook job.
@@ -18,6 +18,18 @@ hooks:
     # -- Image for the upgrade checks hook job.
     # This image must have everestctl pre-installed to support air-gapped environments.
     image: "ghcr.io/openeverest/everestctl"
+proxy:
+  # -- HTTP proxy URL. Injected as HTTP_PROXY into the Everest server and operator
+  # containers, the upgrade-checks hook job, and (via `everest-db-namespace`) the
+  # PXC/PSMDB/PG operator Subscriptions.
+  httpProxy: ""
+  # -- HTTPS proxy URL. Injected as HTTPS_PROXY into the same set of workloads.
+  httpsProxy: ""
+  # -- Comma-separated list of hosts to exclude from proxying. Injected as NO_PROXY into
+  # the same set of workloads. The upgrade-checks hook also calls kubectl (via
+  # `everestctl upgrade --in-cluster`) against the in-cluster API server, so include its
+  # address/CIDR here if it would otherwise be proxied.
+  noProxy: ""
 compatibility:
   # -- Enable OpenShift compatibility.
   openshift: false

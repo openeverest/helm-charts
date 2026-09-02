@@ -97,6 +97,9 @@ spec:
         - name: TLS_CERTS_PATH
           value: {{ $tlsCertsPath | quote }}
         {{- end }}
+        {{- with include "everest.proxyEnv" .Values.proxy | trim }}
+        {{- . | nindent 8 }}
+        {{- end }}
         {{- if .Values.server.env }}
         {{- toYaml .Values.server.env | nindent 8 }}
         {{- end }}

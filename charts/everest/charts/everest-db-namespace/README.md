@@ -1,6 +1,6 @@
 # everest-db-namespace
 
-![Version: 1.14.0](https://img.shields.io/badge/Version-1.14.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.14.0](https://img.shields.io/badge/AppVersion-1.14.0-informational?style=flat-square)
+![Version: 1.15.0](https://img.shields.io/badge/Version-1.15.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.15.0](https://img.shields.io/badge/AppVersion-1.15.0-informational?style=flat-square)
 
 A sub-chart for provisioning Everest DB namespaces.
 
@@ -27,13 +27,16 @@ Kubernetes: `>= 1.27.0-0`
 |-----|------|---------|-------------|
 | cleanupOnUninstall | bool | `true` | If set, cleans up the DB resources on uninstall. |
 | compatibility.openshift | bool | `false` | If set, enable OpenShift compatibility. |
-| hooks | object | `{"csvCleanup":{},"dbResourcesCleanup":{},"image":"percona/everest-helmtools:0.0.1","operatorsInstaller":{}}` | Configuration for Helm chart hooks. |
+| hooks | object | `{"csvCleanup":{},"dbResourcesCleanup":{},"image":"ghcr.io/openeverest/openeverest-helmtools:0.0.1","operatorsInstaller":{}}` | Configuration for Helm chart hooks. |
 | hooks.csvCleanup | object | `{}` | Configuration for the ClusterServiceVersion cleanup hook. |
 | hooks.dbResourcesCleanup | object | `{}` | Configuration for the DB resources cleanup hook. |
-| hooks.image | string | `percona/everest-helmtools:0.0.1` | Default image to use for the Helm chart hooks job. |
+| hooks.image | string | `ghcr.io/openeverest/openeverest-helmtools:0.0.1` | Default image to use for the Helm chart hooks job. |
 | hooks.operatorsInstaller | object | `{}` | Configuration for the operators installer hook. |
 | namespaceOverride | string | `""` | Namespace override. Defaults to the value of .Release.Namespace. |
 | postgresql | bool | `true` | If set, installs the Percona Postgresql Server operator. |
+| proxy.httpProxy | string | `""` | HTTP proxy URL. Injected as HTTP_PROXY into the PXC/PSMDB/PG operator Subscriptions. When this chart is installed as part of the parent openeverest chart, set this via `dbNamespace.proxy.httpProxy` instead. |
+| proxy.httpsProxy | string | `""` | HTTPS proxy URL. Injected as HTTPS_PROXY into the same Subscriptions. |
+| proxy.noProxy | string | `""` | Comma-separated list of hosts to exclude from proxying. Injected as NO_PROXY into the same Subscriptions. |
 | psmdb | bool | `true` | If set, installs the Percona Server MongoDB operator. |
 | pxc | bool | `true` | If set, installs the Percona XtraDB Cluster operator. |
 | telemetry | bool | `true` | If set, enabled sending telemetry information. |

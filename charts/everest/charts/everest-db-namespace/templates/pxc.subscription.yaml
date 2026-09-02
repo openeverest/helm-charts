@@ -23,4 +23,7 @@ spec:
       {{- else }}
       value: "false"
       {{- end }}
+    {{- with include "everest.proxyEnv" $.Values.proxy | trim }}
+    {{- . | nindent 4 }}
+    {{- end }}
 {{- end }}

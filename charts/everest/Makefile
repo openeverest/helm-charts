@@ -6,7 +6,7 @@ EVEREST_SERVER_IMAGE_NAME ?= openeverest
 EVEREST_OPERATOR_IMAGE_NAME ?= openeverest-operator
 EVEREST_CATALOG_IMAGE_NAME ?= openeverest-catalog
 TELEMETRY ?= true
-VERSION ?= 1.15.0
+VERSION ?= 1.16.2
 CHART_VERSION ?= $(VERSION)
 GH_PAGES_WORKTREE ?= /tmp/helm-gh-pages
 
@@ -87,6 +87,7 @@ docs-gen:
 test:
 	$(HELM) template test . --namespace everest-system
 	$(HELM) template test . --namespace everest-system -f test/test-values.yaml
+	$(HELM) template test . --namespace everest-system --set proxy.httpProxy=http://proxy.example.com:3128 --set proxy.httpsProxy=http://proxy.example.com:3128 --set proxy.noProxy=10.96.0.1
 	$(MAKE) test-pmm3
 
 .PHONY: test-pmm3
