@@ -54,7 +54,7 @@ To access the web UI, set up port-forwarding and visit {{ $pfUrl }} in your brow
 INSTALL A PROVIDER TO MANAGE DATABASES
 =======================================
 
-OpenEverest v2 uses a modular architecture and does not bundle a database provider by default.
+OpenEverest v2 uses a modular architecture and does not bundle a provider by default.
 Browse the Hub to pick a provider and find its installation instructions:
 
     https://openeverest.io/extensions/
