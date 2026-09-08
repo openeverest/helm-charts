@@ -59,7 +59,6 @@ Browse the Hub to pick a provider and find its installation instructions:
 
     https://openeverest.io/extensions/
 
-Providers can also be browsed and installed directly from the web UI.
 {{- end }}
 
 {{- if .Release.IsUpgrade }}
