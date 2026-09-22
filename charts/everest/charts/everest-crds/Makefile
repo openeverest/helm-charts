@@ -12,16 +12,25 @@ release:
 OPENEVEREST_REPO_URL ?= https://github.com/openeverest/openeverest
 CRD_DIR ?= config/crd
 CRD_VERSION ?= main
-# FIXME: this is temporary until we have a split between v1 and v2
-OPENEVEREST_CRD_VERSION ?= v2
+OPENEVEREST_CRD_VERSION ?= main
 CRD_SUBCHART_DIR ?= $(PWD)
 .PHONY: crds-gen
 crds-gen:
-	@crd_tmp_file="crd.tmp.yaml"; \
+# Generate into a temporary directory and only swap it in once kustomize has
+# succeeded, so a failed build cannot leave templates/ empty or half-written.
+# The swap clears templates/ first: kustomize only writes the manifests it
+# currently generates, so a CRD that upstream has dropped or renamed would
+# otherwise linger here and still be labelled and shipped by the chart.
+	@tmp_dir="$(CRD_SUBCHART_DIR)/.crds-gen.tmp"; \
+	rm -rf "$$tmp_dir" && mkdir -p "$$tmp_dir" && \
 	docker run --rm \
 		-v "$(CRD_SUBCHART_DIR)":/workspace \
 		-w /workspace \
 		registry.k8s.io/kustomize/kustomize:v5.7.0 \
-		build $(OPENEVEREST_REPO_URL)/$(CRD_DIR)?ref=$(OPENEVEREST_CRD_VERSION) > $(CRD_SUBCHART_DIR)/$$crd_tmp_file --output templates;
+		build $(OPENEVEREST_REPO_URL)/$(CRD_DIR)?ref=$(OPENEVEREST_CRD_VERSION) --output .crds-gen.tmp && \
+	ls "$$tmp_dir"/*.yaml >/dev/null 2>&1 && \
+	rm -f $(CRD_SUBCHART_DIR)/templates/*.yaml && \
+	mv "$$tmp_dir"/*.yaml $(CRD_SUBCHART_DIR)/templates/ && \
+	rm -rf "$$tmp_dir";
 
 	@bash $(CRD_SUBCHART_DIR)/scripts/labels.sh templates "everest.percona.com/crd=true,everest.percona.com/version=$(VERSION)";
