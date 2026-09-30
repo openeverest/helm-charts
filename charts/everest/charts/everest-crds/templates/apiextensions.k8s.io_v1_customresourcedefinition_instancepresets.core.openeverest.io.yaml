@@ -153,14 +153,45 @@ spec:
                                     per-backup-run.
                                   type: object
                                   x-kubernetes-preserve-unknown-fields: true
-                                retentionCopies:
+                                retention:
                                   description: |-
-                                    RetentionCopies is the number of recent backups to keep for this
-                                    schedule. Zero (or unset) means "keep all". Negative values are
-                                    rejected.
-                                  format: int32
-                                  minimum: 0
-                                  type: integer
+                                    Retention configures count-based or time-based backup retention for
+                                    this schedule. Unset keeps all backups.
+                                  properties:
+                                    count:
+                                      description: |-
+                                        Count is the number of recent backups to keep when Type is count.
+                                        Required when Type is count (minimum 1). Forbidden when Type is time.
+                                        Omit Retention on the schedule to keep all backups.
+                                      format: int32
+                                      minimum: 1
+                                      type: integer
+                                    duration:
+                                      description: |-
+                                        Duration is the recovery window when Type is time, in the form
+                                        <positive-integer><unit> where unit is d (days), w (weeks), or m
+                                        (months) — e.g. "30d", "4w", "2m". Forbidden when Type is count.
+                                      pattern: ^[1-9][0-9]*[dwm]$
+                                      type: string
+                                    type:
+                                      default: count
+                                      description: Type selects count-based or time-based retention.
+                                      enum:
+                                        - count
+                                        - time
+                                      type: string
+                                  required:
+                                    - type
+                                  type: object
+                                  x-kubernetes-validations:
+                                    - message: count is required when retention type is count
+                                      rule: 'self.type == ''count'' ? has(self.count) : true'
+                                    - message: duration is only allowed when retention type is time
+                                      rule: 'self.type == ''count'' ? !has(self.duration) : true'
+                                    - message: count is only allowed when retention type is count
+                                      rule: 'self.type == ''time'' ? !has(self.count) : true'
+                                    - message: duration is required when retention type is time
+                                      rule: 'self.type == ''time'' ? has(self.duration) : true'
                               required:
                                 - cron
                                 - enabled
@@ -1623,6 +1654,76 @@ spec:
                         - RollingRestart
                         - Downtime
                       type: string
+                  type: object
+                monitoring:
+                  description: |-
+                    Monitoring configures where this Instance sends monitoring data. Core
+                    creates one MonitoringBinding per destination; the resolved state is
+                    mirrored in status.monitoring.destinations[].
+                  properties:
+                    destinations:
+                      description: |-
+                        Destinations lists the MonitoringDestinations this Instance sends to.
+                        Core creates one MonitoringBinding per entry.
+                      items:
+                        description: |-
+                          InstanceMonitoringDestination sends the Instance's monitoring data to one
+                          MonitoringDestination.
+                        properties:
+                          destinationRef:
+                            description: |-
+                              DestinationRef references the MonitoringDestination in the Instance's
+                              namespace.
+                            properties:
+                              kind:
+                                default: MonitoringDestination
+                                description: Kind of the referenced object.
+                                enum:
+                                  - MonitoringDestination
+                                type: string
+                              name:
+                                description: Name of the referenced object.
+                                maxLength: 253
+                                minLength: 1
+                                pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                                type: string
+                            required:
+                              - name
+                            type: object
+                            x-kubernetes-map-type: atomic
+                          executionMode:
+                            description: |-
+                              ExecutionMode pins who renders the binding. When unset the mode is
+                              resolved once when the binding is created and never changes on its own;
+                              changing the pin recreates the binding.
+                            enum:
+                              - ProviderManaged
+                              - ExtensionManaged
+                            type: string
+                          name:
+                            description: |-
+                              Name identifies the entry within the Instance; it is the key of
+                              status.monitoring.destinations[] and part of the MonitoringBinding name.
+                            maxLength: 63
+                            minLength: 1
+                            pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                            type: string
+                          parameters:
+                            description: Parameters are validated against the class's instanceParametersSchema.
+                            type: object
+                            x-kubernetes-preserve-unknown-fields: true
+                        required:
+                          - destinationRef
+                          - name
+                        type: object
+                      maxItems: 8
+                      type: array
+                      x-kubernetes-list-map-keys:
+                        - name
+                      x-kubernetes-list-type: map
+                      x-kubernetes-validations:
+                        - message: each MonitoringDestination may be listed at most once
+                          rule: self.all(a, self.exists_one(b, b.destinationRef.name == a.destinationRef.name))
                   type: object
                 parameters:
                   description: |-
