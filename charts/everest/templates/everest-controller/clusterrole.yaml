@@ -84,6 +84,7 @@ rules:
   - core.openeverest.io
   resources:
   - instances
+  - providers
   verbs:
   - get
   - list
@@ -121,6 +122,8 @@ rules:
   - monitoring.openeverest.io
   resources:
   - monitoringconfigs
+  - monitoringdestinations
+  - monitoringbindings
   verbs:
   - create
   - delete
@@ -132,13 +135,24 @@ rules:
 - apiGroups:
   - monitoring.openeverest.io
   resources:
+  - monitoringclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - monitoring.openeverest.io
+  resources:
   - monitoringconfigs/finalizers
+  - monitoringdestinations/finalizers
   verbs:
   - update
 - apiGroups:
   - monitoring.openeverest.io
   resources:
   - monitoringconfigs/status
+  - monitoringdestinations/status
+  - monitoringbindings/status
   verbs:
   - get
   - patch
