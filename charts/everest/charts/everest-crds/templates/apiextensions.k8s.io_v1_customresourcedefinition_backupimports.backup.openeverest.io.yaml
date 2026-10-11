@@ -179,6 +179,7 @@ spec:
                 state:
                   description: State is the current state of the backup import.
                   enum:
+                    - Pending
                     - Succeeded
                     - Failed
                     - Error
