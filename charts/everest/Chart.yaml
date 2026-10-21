@@ -4,7 +4,7 @@ description: A cloud-native database platform
 version: "2.0.0-dev.2"
 appVersion: "2.0.0-dev.2"
 type: application
-kubeVersion: '>= 1.27.0-0'
+kubeVersion: '>= 1.32.0-0'
 annotations:
   helm.sh/release-max-history: "5"
 maintainers:
