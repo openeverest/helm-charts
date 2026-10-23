@@ -11,34 +11,8 @@ Run the following command to install Everest with OpenShift compatibility enable
 ```sh
 helm install everest-core openeverest/openeverest \
     --namespace everest-system \
-    --create-namespace \
-    --set compatibility.openshift=true \
-    --set kube-state-metrics.securityContext.enabled=false \
-    --set kube-state-metrics.rbac.create=false
+    --create-namespace
 ```
-
-## 2. (Optional) Update RBAC for kube-state-metrics
-
-If you're using a chart version older than 1.5.0, you must manually create a `ClusterRoleBinding` for kube-state-metrics. Use the following YAML:
-
-```sh
-cat <<EOF | kubectl apply -f -
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: ksm-openshift-cluster-role-binding
-roleRef:
-  kind: "ClusterRole"
-  apiGroup: "rbac.authorization.k8s.io"
-  name: kube-state-metrics
-subjects:
-  - kind: "ServiceAccount"
-    name: kube-state-metrics
-    namespace: everest-monitoring
-EOF
-```
-
-> Note: For versions 1.5.0 and above, this `ClusterRoleBinding` is created automatically when you set `compatibility.openshift=true`.
 
 For detailed instructions, refer to the guide linked [here](../README.md), but adjust the installation parameters according to the values specified in this document.
 
