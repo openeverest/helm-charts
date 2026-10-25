@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - 'charts/**'
+      - '.github/workflows/ci.yaml'
   push:
     branches:
       - main
       - v1.x
     paths:
       - 'charts/**'
+      - '.github/workflows/ci.yaml'
 
 permissions:
   contents: read
@@ -37,6 +39,9 @@ jobs:
 
       - name: Run helm lint
         run: helm lint charts/everest --namespace everest-system
+
+      - name: Run helm lint on everest-crds
+        run: helm lint charts/everest/charts/everest-crds
 
       - name: Set up chart-testing
         uses: helm/chart-testing-action@e6669bcd63d7cb57cb4380c33043eebe5d111992 # v2.6.1
@@ -69,3 +74,6 @@ jobs:
 
       - name: Run helm template
         run: make -C charts/everest test
+
+      - name: Run helm template on everest-crds
+        run: helm template everest-crds charts/everest/charts/everest-crds > /dev/null
