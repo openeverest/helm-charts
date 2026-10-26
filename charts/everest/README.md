@@ -112,7 +112,6 @@ The following table shows the configurable parameters of the OpenEverest chart a
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| compatibility.openshift | bool | `false` | Enable OpenShift compatibility. |
 | controller.command | string | `"/everest-controller"` | Command to run in the controller container. |
 | controller.enabled | bool | `true` | If set, enables the Everest controller manager. |
 | controller.env | list | `[]` | Additional environment variables to pass to the controller deployment. |
@@ -126,7 +125,6 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | controller.resources | object | `{"limits":{"cpu":"500m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"64Mi"}}` | Resources to allocate for the controller container. |
 | controller.webhook.certs | object | `{"ca.crt":"","tls.crt":"","tls.key":""}` | Certificates to use for the webhook server. The values must be base64 encoded. If unset, uses self-signed certificates. |
 | controller.webhook.preserveTLSCerts | bool |  | If set to true, preserves existing TLS Certificate Secrets during upgrades. This setting is ignored if certificates are explicitly provided in controller.webhook.certs, in which case the specified certificates are used instead. This setting has no effect during installation. |
-| createMonitoringResources | bool | `true` | If set, creates resources for Kubernetes monitoring. |
 | hooks | object | `{"image":{"pullPolicy":"IfNotPresent","repository":"ghcr.io/openeverest/openeverest-helmtools","tag":"0.0.1"},"upgradeChecks":{"image":{"repository":"","tag":""}}}` | Configuration for Helm chart hooks. |
 | hooks.image | object | `{"pullPolicy":"IfNotPresent","repository":"ghcr.io/openeverest/openeverest-helmtools","tag":"0.0.1"}` | Default image to use for the Helm chart hooks job. |
 | hooks.image.pullPolicy | string | `"IfNotPresent"` | Pull policy for the hooks image. |
@@ -140,6 +138,7 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | ingress.hosts | list | `[{"host":"chart-example.local","paths":[{"path":"/","pathType":"ImplementationSpecific"}]}]` | List of hosts and their paths for the ingress resource. |
 | ingress.ingressClassName | string | `""` | Ingress class name. This is used to specify which ingress controller should handle this ingress. |
 | ingress.tls | list | `[]` | Each entry in the list specifies a TLS certificate and the hosts it applies to. |
+| monitoringNamespace | string | `"everest-monitoring"` | Namespace where monitoring resources (e.g. VMAgent, Secrets) managed by the MonitoringConfig controller are created. Everest does not install a VictoriaMetrics operator or a monitoring stack into this namespace itself; if you want to ship metrics to PMM, install the VictoriaMetrics operator yourself (e.g. via the `pmm` chart in https://github.com/percona/percona-helm-charts) and create a MonitoringConfig pointing at it. |
 | namespaceOverride | string | `""` | Namespace override. Defaults to the value of .Release.Namespace. |
 | plugin-hub | object | `{}` | Values forwarded to the `plugin-hub` sub-chart. Refer to the upstream chart for the full list of configurable values: https://ghcr.io/openeverest/charts/plugin-hub |
 | plugins | object | `{"hub":{"enabled":true}}` | Configuration for OpenEverest plugins bundled with this chart. |

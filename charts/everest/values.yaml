@@ -17,9 +17,6 @@ hooks:
       repository: ""
       # -- Tag for the upgrade checks image. Defaults to `hooks.image.tag` if not set.
       tag: ""
-compatibility:
-  # -- Enable OpenShift compatibility.
-  openshift: false
 # -- Namespace override. Defaults to the value of .Release.Namespace.
 namespaceOverride: ""
 # -- If set, enabled sending telemetry information.
@@ -218,32 +215,11 @@ upgrade:
   preflightChecks: true
   # -- Ensures that CRDs are upgraded first (default: true). Set to false to disable.
   crdChecks: true
-# Do not change the following values unless you know what you are doing.
-# @ignore
-kube-state-metrics:
-  enabled: true
-  namespaceOverride: "everest-monitoring"
-  selectorOverride:
-    app.kubernetes.io/name: kube-state-metrics
-  customLabels:
-    everest.percona.com/type: monitoring
-  fullnameOverride: kube-state-metrics
-  volumes:
-    - name: customresourcestate-config
-      configMap:
-        name: customresource-config-ksm
-  volumeMounts:
-    - name: customresourcestate-config
-      mountPath: /etc/customresourcestate
-      readOnly: true
-  extraArgs:
-    - --custom-resource-state-config-file=/etc/customresourcestate/config
-  metricLabelsAllowlist:
-    - "pods=[app.kubernetes.io/component,app.kubernetes.io/instance,app.kubernetes.io/managed-by,app.kubernetes.io/name,app.kubernetes.io/part-of]"
-    - "persistentvolumeclaims=[app.kubernetes.io/component,app.kubernetes.io/instance,app.kubernetes.io/managed-by,app.kubernetes.io/name,app.kubernetes.io/part-of]"
-    - "jobs=[app.kubernetes.io/component,app.kubernetes.io/instance,app.kubernetes.io/managed-by,app.kubernetes.io/name,app.kubernetes.io/part-of]"
-# -- If set, creates resources for Kubernetes monitoring.
-createMonitoringResources: true
+# -- Namespace where monitoring resources (e.g. VMAgent, Secrets) managed by the MonitoringConfig controller
+# are created. Everest does not install a VictoriaMetrics operator or a monitoring stack into this namespace
+# itself; if you want to ship metrics to PMM, install the VictoriaMetrics operator yourself (e.g. via the
+# `pmm` chart in https://github.com/percona/percona-helm-charts) and create a MonitoringConfig pointing at it.
+monitoringNamespace: everest-monitoring
 ingress:
   # -- Enable ingress for Everest server
   enabled: false
@@ -263,19 +239,6 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
-# Do not change the following values unless you know what you are doing.
-# @ignore
-monitoring:
-  enabled: true
-  namespaceOverride: everest-monitoring
-  fullnameOverride: vm-operator
-  crds:
-    enabled: true
-    plain: true
-  admissionWebhooks:
-    enabled: false
-  certManager:
-    enabled: false
 # -- PMM settings.
 pmm:
   # -- If set, deploys PMM2 in the release namespace.
