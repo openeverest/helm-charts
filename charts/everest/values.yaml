@@ -194,20 +194,6 @@ controller:
   #   value: value1
   # - name: key2
   #   value: value2
-  webhook:
-    # -- Certificates to use for the webhook server.
-    # The values must be base64 encoded.
-    # If unset, uses self-signed certificates.
-    certs:
-      tls.key: ""
-      tls.crt: ""
-      ca.crt: ""
-    # -- If set to true, preserves existing TLS Certificate Secrets during upgrades.
-    # This setting is ignored if certificates are explicitly provided in controller.webhook.certs,
-    # in which case the specified certificates are used instead.
-    # This setting has no effect during installation.
-    # @default -- true
-    preserveTLSCerts: true
 # -- URL of the Version Metadata Service.
 versionMetadataURL: "https://check.percona.com"
 upgrade:
@@ -215,11 +201,6 @@ upgrade:
   preflightChecks: true
   # -- Ensures that CRDs are upgraded first (default: true). Set to false to disable.
   crdChecks: true
-# -- Namespace where monitoring resources (e.g. VMAgent, Secrets) managed by the MonitoringConfig controller
-# are created. Everest does not install a VictoriaMetrics operator or a monitoring stack into this namespace
-# itself; if you want to ship metrics to PMM, install the VictoriaMetrics operator yourself (e.g. via the
-# `pmm` chart in https://github.com/percona/percona-helm-charts) and create a MonitoringConfig pointing at it.
-monitoringNamespace: everest-monitoring
 ingress:
   # -- Enable ingress for Everest server
   enabled: false
