@@ -404,6 +404,7 @@ spec:
         - jsonPath: .spec.classRef.name
         - jsonPath: .spec.storageRef.name
         - jsonPath: .spec.origin.type
+        - jsonPath: .spec.origin.instanceRef.name
       served: true
       storage: true
       subresources:
