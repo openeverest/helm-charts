@@ -140,7 +140,8 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | ingress.tls | list | `[]` | Each entry in the list specifies a TLS certificate and the hosts it applies to. |
 | monitoringNamespace | string | `"everest-monitoring"` | Namespace where monitoring resources (e.g. VMAgent, Secrets) managed by the MonitoringConfig controller are created. Everest does not install a VictoriaMetrics operator or a monitoring stack into this namespace itself; if you want to ship metrics to PMM, install the VictoriaMetrics operator yourself (e.g. via the `pmm` chart in https://github.com/percona/percona-helm-charts) and create a MonitoringConfig pointing at it. |
 | namespaceOverride | string | `""` | Namespace override. Defaults to the value of .Release.Namespace. |
-| plugin-hub | object | `{}` | Values forwarded to the `plugin-hub` sub-chart. Refer to the upstream chart for the full list of configurable values: https://ghcr.io/openeverest/charts/plugin-hub |
+| plugin-hub | object | `{"installer":{"enabled":true}}` | Values forwarded to the `plugin-hub` sub-chart. Refer to the upstream chart for the full list of configurable values: https://ghcr.io/openeverest/charts/plugin-hub |
+| plugin-hub.installer.enabled | bool | `true` | One-click install/upgrade/uninstall of plugins and providers from the Plugin Hub UI (admins only). While enabled, the plugin-hub pod is bound to `cluster-admin` so it can install providers' CRDs and cluster roles. Opt out with `--set plugin-hub.installer.enabled=false` to keep the hub browse-only (copy-paste Helm commands). |
 | plugins | object | `{"hub":{"enabled":true}}` | Configuration for OpenEverest plugins bundled with this chart. |
 | plugins.hub | object | `{"enabled":true}` | Plugin Hub settings. |
 | plugins.hub.enabled | bool | `true` | If set, deploys the OpenEverest Plugin Hub (`plugin-hub` sub-chart) in the release namespace alongside Everest. Disable with `--set plugins.hub.enabled=false`. |
