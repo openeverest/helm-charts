@@ -10,7 +10,6 @@ rules:
   - ""
   resources:
   - namespaces
-  - pods
   verbs:
   - get
   - list
@@ -19,7 +18,6 @@ rules:
   - ""
   resources:
   - secrets
-  - serviceaccounts
   verbs:
   - create
   - delete
@@ -65,23 +63,9 @@ rules:
 - apiGroups:
   - backup.openeverest.io
   resources:
-  - backups/finalizers
   - backupstorages/finalizers
-  - restores/finalizers
   verbs:
   - update
-- apiGroups:
-  - batch
-  resources:
-  - jobs
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
 - apiGroups:
   - core.openeverest.io
   resources:
@@ -189,34 +173,6 @@ rules:
   - delete
   - get
   - list
-  - update
-  - watch
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - clusterrolebindings
-  - rolebindings
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - clusterroles
-  - roles
-  verbs:
-  - bind
-  - create
-  - delete
-  - escalate
-  - get
-  - list
-  - patch
   - update
   - watch
 {{- end }}
