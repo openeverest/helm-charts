@@ -63,12 +63,6 @@ rules:
 - apiGroups:
   - backup.openeverest.io
   resources:
-  - backupstorages/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - backup.openeverest.io
-  resources:
   - backupstorages
   verbs:
   - get
@@ -77,17 +71,11 @@ rules:
   - update
   - watch
 - apiGroups:
-  - batch
+  - backup.openeverest.io
   resources:
-  - jobs
+  - backupstorages/finalizers
   verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
   - update
-  - watch
 - apiGroups:
   - core.openeverest.io
   resources:
