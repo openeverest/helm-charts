@@ -1,4 +1,8 @@
 {{- if .Values.controller.enabled }}
+{{- $replicas := int .Values.controller.replicas }}
+{{- if and (gt $replicas 1) (not .Values.controller.leaderElection.enabled) }}
+{{- fail "controller.replicas above 1 requires controller.leaderElection.enabled" }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -7,7 +11,7 @@ metadata:
   labels:
     app: everest-controller
 spec:
-  replicas: 1
+  replicas: {{ $replicas }}
   revisionHistoryLimit: 1
   selector:
     matchLabels:
@@ -22,6 +26,22 @@ spec:
       labels:
         app: everest-controller
     spec:
+      {{- with .Values.controller.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- else }}
+      {{- if gt $replicas 1 }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: everest-controller
+              topologyKey: kubernetes.io/hostname
+      {{- end }}
+      {{- end }}
       containers:
       - name: manager
         {{- $repo := default .Values.server.image.repository .Values.controller.image.repository }}

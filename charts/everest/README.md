@@ -112,6 +112,7 @@ The following table shows the configurable parameters of the OpenEverest chart a
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| controller.affinity | object | `{}` | Affinity settings for the controller pods. When empty and `controller.replicas` is above 1, the replicas prefer different nodes. |
 | controller.command | string | `"/everest-controller"` | Command to run in the controller container. |
 | controller.enabled | bool | `true` | If set, enables the Everest controller manager. |
 | controller.env | list | `[]` | Additional environment variables to pass to the controller deployment. |
@@ -122,6 +123,7 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | controller.image.tag | string | `""` | Tag for the controller image. Defaults to `server.image.tag` (or `.Chart.AppVersion`) if not set. |
 | controller.leaderElection | object | `{"enabled":true}` | Enable leader election for the controller manager. |
 | controller.metricsBindAddress | string | `"0"` | Metrics address for the controller. |
+| controller.replicas | int | `2` | Number of controller manager replicas. The controllers run on the elected leader only, while every replica serves the admission webhooks, which fail closed: with more than one replica, Backup, Restore and BackupImport creates keep working while a replica restarts. More than one replica requires `controller.leaderElection.enabled`. |
 | controller.resources | object | `{"limits":{"cpu":"500m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"64Mi"}}` | Resources to allocate for the controller container. |
 | controller.webhook.certs | object | `{"ca.crt":"","tls.crt":"","tls.key":""}` | Certificates to use for the webhook server. The values must be base64 encoded. If unset, uses self-signed certificates. |
 | controller.webhook.preserveTLSCerts | bool |  | If set to true, preserves existing TLS Certificate Secrets during upgrades. This setting is ignored if certificates are explicitly provided in controller.webhook.certs, in which case the specified certificates are used instead. This setting has no effect during installation. |

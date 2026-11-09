@@ -48,6 +48,16 @@ server:
         matchLabels:
           app.kubernetes.io/name: everest-server
 
+controller:
+  replicas: 3
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app: everest-controller
+          topologyKey: topology.kubernetes.io/zone
+
 ingress:
   enabled: true
   ingressClassName: nginx

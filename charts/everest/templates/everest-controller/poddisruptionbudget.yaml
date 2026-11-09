@@ -1,0 +1,15 @@
+{{- if and .Values.controller.enabled (gt (int .Values.controller.replicas) 1) }}
+# Keeps a replica serving the admission webhooks, which fail closed, during voluntary disruptions.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: everest-controller
+  namespace: {{ include "everest.namespace" . }}
+  labels:
+    app: everest-controller
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: everest-controller
+{{- end }}
