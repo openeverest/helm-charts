@@ -82,6 +82,13 @@ rules:
   verbs:
   - update
 - apiGroups:
+  - events.k8s.io
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
   - extensions.openeverest.io
   resources:
   - installedextensions
@@ -133,7 +140,6 @@ rules:
   - monitoring.openeverest.io
   resources:
   - monitoringclasses
-  - monitoringdestinations
   verbs:
   - get
   - list
@@ -154,6 +160,7 @@ rules:
   - monitoring.openeverest.io
   resources:
   - monitoringconfigs/finalizers
+  - monitoringdestinations/finalizers
   verbs:
   - update
 - apiGroups:
@@ -164,6 +171,15 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - monitoring.openeverest.io
+  resources:
+  - monitoringdestinations
+  verbs:
+  - get
+  - list
+  - patch
+  - watch
 - apiGroups:
   - operator.victoriametrics.com
   resources:
