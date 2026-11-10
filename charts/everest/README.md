@@ -123,6 +123,8 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | controller.leaderElection | object | `{"enabled":true}` | Enable leader election for the controller manager. |
 | controller.metricsBindAddress | string | `"0"` | Metrics address for the controller. |
 | controller.resources | object | `{"limits":{"cpu":"500m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"64Mi"}}` | Resources to allocate for the controller container. |
+| controller.webhook.certs | object | `{"ca.crt":"","tls.crt":"","tls.key":""}` | Certificates to use for the webhook server. The values must be base64 encoded. If unset, uses self-signed certificates. |
+| controller.webhook.preserveTLSCerts | bool |  | If set to true, preserves existing TLS Certificate Secrets during upgrades. This setting is ignored if certificates are explicitly provided in controller.webhook.certs, in which case the specified certificates are used instead. This setting has no effect during installation. |
 | hooks | object | `{"image":{"pullPolicy":"IfNotPresent","repository":"ghcr.io/openeverest/openeverest-helmtools","tag":"0.0.1"},"upgradeChecks":{"image":{"repository":"","tag":""}}}` | Configuration for Helm chart hooks. |
 | hooks.image | object | `{"pullPolicy":"IfNotPresent","repository":"ghcr.io/openeverest/openeverest-helmtools","tag":"0.0.1"}` | Default image to use for the Helm chart hooks job. |
 | hooks.image.pullPolicy | string | `"IfNotPresent"` | Pull policy for the hooks image. |

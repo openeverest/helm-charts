@@ -1,0 +1,19 @@
+{{- if .Values.controller.enabled }}
+{{- /*
+The controller serves its webhook server with this certificate even while core
+registers no admission webhook. A ValidatingWebhookConfiguration added here
+uses the Secret's ca.crt as its caBundle.
+*/}}
+{{ $tls := fromYaml (include "everestController.tlsCerts" .) }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: everest-controller-webhook-server-cert
+  namespace: {{ include "everest.namespace" . }}
+type: kubernetes.io/tls
+data:
+  {{- range $key, $value := $tls }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}
