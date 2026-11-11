@@ -1,0 +1,117 @@
+{{- if .Values.controller.enabled }}
+{{- $hookName := "everest-controller-uninstall-check" }}
+{{- $namespace := include "everest.namespace" . }}
+# Refuses deleting the release while OpenEverest still protects objects in
+# use (MonitoringDestinations, BackupStorages, Secrets) with a finalizer
+# that only its controller removes: uninstalled, it would leave them, and
+# the namespaces holding them, impossible to delete. The Job only reads,
+# and fails with the objects held and what to do; a failing hook stops
+# `helm uninstall`. Delete those objects, or their namespaces, first, or
+# uninstall anyway with `helm uninstall --no-hooks` and remove the
+# finalizers by hand. The Argo CD annotation makes it a PreDelete hook
+# there too (Argo CD 3.3 and later).
+# The RBAC follows uninstall.Registry in the openeverest repo's
+# pkg/inuse/uninstall; keep the two in sync.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $hookName }}
+  namespace: {{ $namespace }}
+  annotations:
+    helm.sh/hook: pre-delete
+    helm.sh/hook-weight: "-1"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    argocd.argoproj.io/hook: PreDelete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $hookName }}
+  annotations:
+    helm.sh/hook: pre-delete
+    helm.sh/hook-weight: "-1"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    argocd.argoproj.io/hook: PreDelete
+rules:
+- apiGroups:
+  - monitoring.openeverest.io
+  resources:
+  - monitoringdestinations
+  verbs:
+  - list
+- apiGroups:
+  - backup.openeverest.io
+  resources:
+  - backupstorages
+  verbs:
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ $hookName }}
+  annotations:
+    helm.sh/hook: pre-delete
+    helm.sh/hook-weight: "-1"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    argocd.argoproj.io/hook: PreDelete
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $hookName }}
+subjects:
+- kind: ServiceAccount
+  name: {{ $hookName }}
+  namespace: {{ $namespace }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $hookName }}
+  namespace: {{ $namespace }}
+  annotations:
+    helm.sh/hook: pre-delete
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    argocd.argoproj.io/hook: PreDelete
+spec:
+  # The check is a single read; running it again would not change its answer.
+  backoffLimit: 0
+  activeDeadlineSeconds: 120
+  template:
+    spec:
+      containers:
+      - name: uninstall-check
+        # The controller's image, as in deployment.yaml: it carries the
+        # uninstall-check subcommand.
+        {{- $repo := default .Values.server.image.repository .Values.controller.image.repository }}
+        {{- $tag := default .Values.server.image.tag .Values.controller.image.tag | default .Chart.AppVersion }}
+        {{- $pullPolicy := default .Values.server.image.pullPolicy .Values.controller.image.pullPolicy }}
+        image: {{ $repo }}:{{ $tag }}
+        imagePullPolicy: {{ $pullPolicy }}
+        command:
+        - {{ .Values.controller.command }}
+        args:
+        - uninstall-check
+        resources: {{ toYaml .Values.controller.resources | nindent 10 }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        # Shows the objects held in the pod's status too.
+        terminationMessagePolicy: FallbackToLogsOnError
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+      serviceAccountName: {{ $hookName }}
+      terminationGracePeriodSeconds: 10
+{{- end }}
