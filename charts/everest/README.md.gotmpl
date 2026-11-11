@@ -56,6 +56,14 @@ helm uninstall everest-core -n everest-system
 kubectl delete ns everest-system
 ```
 
+Notes:
+* `helm uninstall` is refused while OpenEverest still protects objects in use: `MonitoringDestination`s, `BackupStorage`s and Secrets carrying a finalizer that only the OpenEverest controller removes. Uninstalled, it would leave them, and the namespaces holding them, impossible to delete. A `pre-delete` hook Job checks this without changing anything; when it fails, its log lists the objects held:
+  ```sh
+  kubectl logs -n everest-system job/everest-controller-uninstall-check
+  ```
+  Delete those objects, or the namespaces holding them, while OpenEverest is still running, so that it releases them, then uninstall again. `everestctl uninstall` does this for the database namespaces.
+* To uninstall anyway, run `helm uninstall --no-hooks`, then remove the finalizers from the objects left by hand.
+
 ### 5. Upgrade
 
 #### 5.1 Upgrade CRDs

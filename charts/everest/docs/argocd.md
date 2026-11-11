@@ -15,6 +15,8 @@ To prevent ArgoCD from overwriting changes applied externally, include this Secr
 ArgoCD treats this as a `PreSync` hook, causing upgrade checks to run on every sync, which will eventually fail.
 To avoid this, disable the upgrade checks by setting `upgrade.preflightChecks=false`.
 Note that disabling these checks means safe upgrades cannot be guaranteed when using ArgoCD.
+* Deleting the Application runs a `PreDelete` hook that refuses the deletion while OpenEverest still protects objects in use (`MonitoringDestination`s, `BackupStorage`s and Secrets with its in-use finalizer); its Job's log lists them. Delete those objects, or their namespaces, first.
+ArgoCD runs `PreDelete` hooks from version 3.3. Older versions skip the check, and deleting the Application then leaves those objects with a finalizer that nothing removes any more.
 
 #### Recommended configuration example:
 
