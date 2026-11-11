@@ -42,9 +42,9 @@ spec:
   policyName: monitoringdestination-in-use.monitoring.openeverest.io
   validationActions: ["Deny"]
 ---
-# Refuses deleting a Secret while objects use it (spec 020 §4.6). The
-# controller writes one usage count annotation per kind of referrer on every
-# Secret it tracks, leaving out referrers being deleted, and holds the
+# Refuses deleting a Secret while objects use it. The controller writes one
+# usage count annotation per kind of referrer on every Secret it tracks,
+# leaving out referrers being deleted, and holds the
 # openeverest.io/in-use-protection finalizer only while an object uses the
 # Secret, those being deleted included.
 # - Only Secrets labelled openeverest.io/definition reach the policy; the
