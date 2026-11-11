@@ -41,4 +41,64 @@ metadata:
 spec:
   policyName: monitoringdestination-in-use.monitoring.openeverest.io
   validationActions: ["Deny"]
+---
+# Refuses deleting a Secret while objects use it (spec 020 §4.6). The
+# controller writes one usage count annotation per kind of referrer on every
+# Secret it tracks, leaving out referrers being deleted, and holds the
+# openeverest.io/in-use-protection finalizer only while an object uses the
+# Secret, those being deleted included.
+# - Only Secrets labelled openeverest.io/definition reach the policy; the
+#   counts are compared as strings, so it cannot fail to evaluate, and any
+#   count other than '0' refuses.
+# - A repeated deletion of a Secret already being deleted is admitted, and
+#   so is one in a namespace being deleted: the finalizer still waits for
+#   the referrers.
+# - Owner-driven deletions by the garbage collector are admitted, e.g. of a
+#   Secret an ExternalSecret owns; the finalizer still holds the Secret.
+# With secretProtection.enabled=false the binding is not installed, and the
+# controller removes its finalizer and counts from every Secret at start.
+# Keep in sync with config/policy/secret_in_use.yaml in the openeverest repo.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: secret-in-use.openeverest.io
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups: [""]
+      apiVersions: ["v1"]
+      operations: ["DELETE"]
+      resources: ["secrets"]
+    objectSelector:
+      matchExpressions:
+      - {key: openeverest.io/definition, operator: Exists}
+  variables:
+  - name: destinations
+    expression: "oldObject.metadata.?annotations[?'monitoring.openeverest.io/attached-destinations'].orValue('0')"
+  - name: storages
+    expression: "oldObject.metadata.?annotations[?'backup.openeverest.io/attached-storages'].orValue('0')"
+  - name: field
+    expression: "oldObject.metadata.labels['openeverest.io/definition'] == 'ca-bundle' ? 'spec.tls.ca.secretKeyRef.name' : 'spec.authentication.credentialsSecretRef.name'"
+  validations:
+  - expression: >-
+      (variables.destinations == '0' && variables.storages == '0') ||
+      oldObject.metadata.?deletionTimestamp.hasValue() ||
+      namespaceObject.metadata.?deletionTimestamp.hasValue() ||
+      request.userInfo.username in ['system:serviceaccount:kube-system:generic-garbage-collector', 'system:kube-controller-manager']
+    messageExpression: >-
+      'in use by ' + variables.destinations + ' monitoring destination(s) and ' + variables.storages +
+      ' backup storage(s); replace its values instead, or point them at another Secret first (kubectl get monitoringdestinations,backupstorages -n ' +
+      oldObject.metadata.namespace + ' --field-selector ' + variables.field + '=' + oldObject.metadata.name + ')'
+    reason: Forbidden
+{{- if .Values.secretProtection.enabled }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: secret-in-use.openeverest.io
+spec:
+  policyName: secret-in-use.openeverest.io
+  validationActions: ["Deny"]
+{{- end }}
 {{- end }}

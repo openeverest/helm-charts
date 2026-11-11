@@ -68,3 +68,6 @@ upgrade:
   crdChecks: false
 
 versionMetadataURL: "https://check.percona.com"
+
+secretProtection:
+  enabled: false
