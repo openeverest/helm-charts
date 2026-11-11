@@ -219,8 +219,8 @@ secretProtection:
   # -- Protects the Secrets that monitoring destinations and backup storages use, their credentials and CA bundles
   # labelled `openeverest.io/definition`: the controller counts the objects using each one in annotations and holds the
   # `openeverest.io/in-use-protection` finalizer while any does, and the `secret-in-use.openeverest.io` admission
-  # policy refuses deleting a Secret in use. Set to false to turn it off: the controller then removes its finalizer and
-  # counts from every Secret at start, and the policy binding is not installed.
+  # policy refuses deleting a Secret in use. Set to false to turn it off: the controller gets `--secret-protection=false`
+  # and removes its finalizer and counts from every Secret at start, and the policy binding is not installed.
   enabled: true
 ingress:
   # -- Enable ingress for Everest server
