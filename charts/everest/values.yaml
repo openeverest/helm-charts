@@ -215,11 +215,6 @@ upgrade:
   preflightChecks: true
   # -- Ensures that CRDs are upgraded first (default: true). Set to false to disable.
   crdChecks: true
-# -- Namespace where monitoring resources (e.g. VMAgent, Secrets) managed by the MonitoringConfig controller
-# are created. Everest does not install a VictoriaMetrics operator or a monitoring stack into this namespace
-# itself; if you want to ship metrics to PMM, install the VictoriaMetrics operator yourself (e.g. via the
-# `pmm` chart in https://github.com/percona/percona-helm-charts) and create a MonitoringConfig pointing at it.
-monitoringNamespace: everest-monitoring
 ingress:
   # -- Enable ingress for Everest server
   enabled: false
