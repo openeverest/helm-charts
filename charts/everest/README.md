@@ -156,6 +156,7 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | pmm.enabled | bool | `false` | If set, deploys PMM2 in the release namespace. |
 | pmm3.enabled | bool | `false` | If set, deploys PMM3 in the release namespace. |
 | pmm3.pmm | object | `{"nameOverride":"pmm3"}` | PMM configuration. All PMM chart values go under this key. |
+| secretProtection.enabled | bool | `true` | Protects the Secrets that monitoring destinations and backup storages use, their credentials and CA bundles labelled `openeverest.io/definition`: the controller counts the objects using each one in annotations and holds the `openeverest.io/in-use-protection` finalizer while any does, and the `secret-in-use.openeverest.io` admission policy refuses deleting a Secret in use. Set to false to turn it off: the controller gets `--secret-protection=false` and removes its finalizer and counts from every Secret at start, and the policy binding is not installed. |
 | server.affinity | object | `{}` | Affinity settings for the server pod. |
 | server.apiRequestsRateLimit | int | `100` | Set the allowed number of requests per second. |
 | server.command | string | `"/everest-api"` | Command to run in the server container. |

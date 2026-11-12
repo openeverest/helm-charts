@@ -38,6 +38,11 @@ spec:
         - --metrics-bind-address={{ .Values.controller.metricsBindAddress }}
         - --health-probe-bind-address={{ .Values.controller.healthProbeBindAddress }}
         - --webhook-cert-path=/tmp/k8s-webhook-server/serving-certs
+        {{- /* The controller protects Secrets by default; only turning it off
+        needs the flag, so the default render suits any controller image. */}}
+        {{- if not .Values.secretProtection.enabled }}
+        - --secret-protection=false
+        {{- end }}
         ports:
         - containerPort: 8081
           name: health
