@@ -47,6 +47,35 @@ spec:
   policyName: monitoringdestination-in-use.monitoring.openeverest.io
   validationActions: ["Deny"]
 ---
+# Prevents changing Instance.spec.deletionPolicy after deletion has started.
+# Keep in sync with config/policy/instance_deletion_policy.yaml in the
+# openeverest repo.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: instance-deletion-policy-immutability
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["core.openeverest.io"]
+        apiVersions: ["v1alpha1"]
+        operations: ["UPDATE"]
+        resources: ["instances"]
+  validations:
+    - expression: "!has(oldObject.metadata.deletionTimestamp) || object.spec.deletionPolicy == oldObject.spec.deletionPolicy"
+      message: "spec.deletionPolicy is immutable once deletion has started"
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: instance-deletion-policy-immutability-binding
+spec:
+  policyName: instance-deletion-policy-immutability
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector: {}
+---
 # Refuses deleting a Secret while objects use it. The controller writes one
 # usage count annotation per kind of referrer on every Secret it tracks,
 # leaving out referrers being deleted, and holds the
