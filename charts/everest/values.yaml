@@ -173,6 +173,11 @@ controller:
     pullPolicy: ""
   # -- Command to run in the controller container.
   command: /everest-controller
+  # -- Number of controller manager replicas. The controllers run on the elected leader only,
+  # while every replica serves the admission webhooks, which fail closed: with more than one replica,
+  # Backup, Restore and BackupImport creates keep working while a replica restarts.
+  # More than one replica requires `controller.leaderElection.enabled`.
+  replicas: 2
   # -- Health probe address for the controller.
   healthProbeBindAddress: ":8081"
   # -- Metrics address for the controller.
@@ -194,6 +199,9 @@ controller:
   #   value: value1
   # - name: key2
   #   value: value2
+  # -- Affinity settings for the controller pods. When empty and `controller.replicas` is above 1,
+  # the replicas prefer different nodes.
+  affinity: {}
   webhook:
     # -- Certificates to use for the webhook server.
     # The values must be base64 encoded.
