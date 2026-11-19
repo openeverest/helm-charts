@@ -5,5 +5,5 @@
 {{- $upgradeChecksTag := .Values.hooks.upgradeChecks.image.tag | default .Values.hooks.image.tag }}
 {{- $upgradeChecksImage = printf "%s:%s" .Values.hooks.upgradeChecks.image.repository $upgradeChecksTag }}
 {{- end }}
-{{- include "everest.preUpgradeChecks" (dict "namespace" (include "everest.namespace" .) "version" .Chart.AppVersion "versionMetadataURL" (include "everest.versionMetadataURL" .) "image" ($upgradeChecksImage | default $hooksImage)) }}
+{{- include "everest.preUpgradeChecks" (dict "namespace" (include "everest.namespace" .) "version" .Chart.AppVersion "versionMetadataURL" (include "everest.versionMetadataURL" .) "image" ($upgradeChecksImage | default $hooksImage) "imagePullPolicy" .Values.hooks.image.pullPolicy) }}
 {{- end }}
