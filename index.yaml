@@ -1052,6 +1052,48 @@ entries:
     - https://github.com/openeverest/helm-charts/releases/download/openeverest-2.0.0-dev.1/openeverest-2.0.0-dev.1.tgz
     version: 2.0.0-dev.1
   - annotations:
+      helm.sh/release-max-history: "5"
+    apiVersion: v2
+    appVersion: 2.0.0-alpha.1
+    created: "2026-11-20T14:28:13.934923616Z"
+    dependencies:
+    - name: common
+      repository: file://charts/common
+      version: 0.0.*
+    - condition: pmm.enabled
+      name: pmm
+      repository: https://percona.github.io/percona-helm-charts
+      version: 1.3.*
+    - condition: pmm3.enabled
+      name: pmm3
+      repository: file://charts/pmm3
+      version: 0.0.*
+    - condition: everest-crds.enabled
+      name: everest-crds
+      repository: file://charts/everest-crds
+      version: 2.0.0-alpha.1
+    - condition: plugins.hub.enabled
+      name: plugin-hub
+      repository: oci://ghcr.io/openeverest/charts
+      version: 0.1.*
+    description: A cloud-native database platform
+    digest: a31af96edc055112e33caed995b004625f7e315b390aefe24dee41ba95833bda
+    kubeVersion: '>= 1.32.0-0'
+    maintainers:
+    - email: mayank.shah@percona.com
+      name: mayankshah1607
+    - email: oksana.grishchenko@percona.com
+      name: oksana-grishchenko
+    - email: diogo.recharte@percona.com
+      name: recharte
+    - email: sp@solanica.io
+      name: spron-in
+    name: openeverest
+    type: application
+    urls:
+    - https://github.com/openeverest/helm-charts/releases/download/openeverest-2.0.0-alpha.1/openeverest-2.0.0-alpha.1.tgz
+    version: 2.0.0-alpha.1
+  - annotations:
       artifacthub.io/links: |
         - name: Documentation
           url: https://openeverest.io/documentation/current/
@@ -2091,4 +2133,4 @@ entries:
     urls:
     - openeverest-1.13.1.tgz
     version: 1.13.1
-generated: "2026-11-13T22:26:16.114387678Z"
+generated: "2026-11-20T14:28:13.935195365Z"
