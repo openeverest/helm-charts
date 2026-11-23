@@ -1,0 +1,46 @@
+{{- /*
+The role names the CRDs this chart ships in crds/, read here at render time, so
+the list cannot drift from them. It lives in this chart rather than in the
+everest-crds sub-chart because that sub-chart is disabled here by default: the
+CRDs come from crds/, which Helm installs but never templates.
+A rule without resourceNames would cover every CRD in the cluster, so an empty
+list fails the render instead.
+*/}}
+{{- $names := list }}
+{{- range $path, $_ := .Files.Glob "crds/*.yaml" }}
+  {{- $name := dig "metadata" "name" "" ($.Files.Get $path | fromYaml) }}
+  {{- if not $name }}
+    {{- fail (printf "cannot read the CRD name from %s" $path) }}
+  {{- end }}
+  {{- $names = append $names $name }}
+{{- end }}
+{{- if not $names }}
+  {{- fail "no CRDs found in crds/; run make link-crds" }}
+{{- end }}
+# Lets every authenticated identity get the OpenEverest CRDs by name: no list,
+# no watch, no other CRD.
+#
+# Extensions (database providers, plugins) check at render time that the
+# OpenEverest installed in the cluster accepts them: their charts read the
+# compatibility window that OpenEverest publishes as annotations on its CRDs
+# with Helm `lookup`. Helm runs that lookup under whatever identity installs
+# the extension, such as a namespace-scoped user or a GitOps tenant
+# ServiceAccount, and a forbidden lookup fails the whole render, so the
+# extension could not be installed at all.
+#
+# This discloses nothing new: every authenticated identity can already read
+# the CRD schemas through the /openapi discovery endpoints. The CRD objects add
+# only which OpenEverest release is installed and which extension builds it
+# accepts, and reading a CRD reveals none of its custom resources.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: openeverest-crd-reader
+rules:
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    resourceNames:
+      {{- range sortAlpha $names }}
+      - {{ . }}
+      {{- end }}
+    verbs: ["get"]
