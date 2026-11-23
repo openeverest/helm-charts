@@ -35,6 +35,7 @@ jobs:
           ref: ${{ github.event.inputs.branch }}
           sparse-checkout: |
             charts/everest
+            tools/bundled-compat-check
 
       - name: Configure Git
         run: |
@@ -45,6 +46,12 @@ jobs:
         uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4.3.1
         with:
           version: v3.17.0
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: tools/bundled-compat-check/go.mod
+          cache-dependency-path: tools/bundled-compat-check/go.sum
 
       - name: Prepare RC
         if: ${{ env.IS_RC == '1' }}
@@ -57,6 +64,11 @@ jobs:
         run: |
           cd charts/everest
           make release
+
+      # Runs on the prepared chart: its window and its locked dependencies are
+      # the ones the next steps package.
+      - name: Check bundled extensions
+        run: make -C charts/everest check-bundled-compat
 
       - name: Release chart
         uses: helm/chart-releaser-action@a917fd15b20e8b64b94d9158ad54cd6345335584 # v1.6.0

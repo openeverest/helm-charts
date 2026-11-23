@@ -1,4 +1,5 @@
 HELM ?= helm
+GO ?= go
 
 # values to override
 IMAGE_PREFIX ?= ghcr.io/openeverest
@@ -29,6 +30,12 @@ annotate-chart: ## Record the core release and the compatibility window of its C
 	VERSION=$(VERSION) \
 	bash scripts/annotate-chart.sh
 
+# The check lives in its own Go module outside this chart: the chart's module
+# is imported by OpenEverest, so it must not depend on OpenEverest itself.
+.PHONY: check-bundled-compat
+check-bundled-compat: ## Refuse a chart whose locked OCI dependencies are outside the compatibility window in its Chart.yaml annotations.
+	$(GO) run -C $(abspath $(CURDIR)/../../tools/bundled-compat-check) . -chart $(CURDIR)
+
 .PHONY: release-crds
 release-crds:
 	VERSION=$(VERSION) \
@@ -46,7 +53,7 @@ release-dev: release-crds
 release-dev: prepare-chart
 
 .PHONY: publish
-publish:
+publish: check-bundled-compat
 	git worktree remove --force $(GH_PAGES_WORKTREE) 2>/dev/null || true
 	git worktree add $(GH_PAGES_WORKTREE) gh-pages
 	$(HELM) package . -d $(GH_PAGES_WORKTREE)
