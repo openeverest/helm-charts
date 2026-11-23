@@ -6,7 +6,7 @@ metadata:
   name: monitoringdestinations.monitoring.openeverest.io
   labels:
     everest.percona.com/crd: "true"
-    everest.percona.com/version: 1.14.0
+    openeverest.io/version: 2.0.0-dev.2
 spec:
   group: monitoring.openeverest.io
   names:
