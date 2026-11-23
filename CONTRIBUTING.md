@@ -153,13 +153,15 @@ make release-and-publish VERSION=1.2.3
 ```
 
 This single command:
-1. Stamps `version` (= `CHART_VERSION`) and `appVersion` (= `VERSION`) in the `Chart.yaml` files (`openeverest`, `everest-crds`)
-2. Updates image references in `values.yaml`
-3. Re-pins dependency versions in `Chart.yaml`
-4. Runs `helm dependency update`
-5. Packages the chart into a `openeverest-<CHART_VERSION>.tgz`
-6. Regenerates `index.yaml` on the `gh-pages` branch (preserving prior releases)
-7. Commits and pushes `gh-pages`
+1. Labels the CRDs with `openeverest.io/version` (= `VERSION`)
+2. Stamps `version` (= `CHART_VERSION`) and `appVersion` (= `VERSION`) in the `Chart.yaml` files (`openeverest`, `everest-crds`)
+3. Updates image references in `values.yaml`
+4. Re-pins dependency versions in `Chart.yaml`
+5. Records in the `openeverest` `Chart.yaml` annotations the release (`openeverest.io/version` = `VERSION`) and the compatibility window that OpenEverest stamps on its CRDs (`openeverest.io/contract-version`, `openeverest.io/min-contract-version`, `openeverest.io/upgradable-from`). It fails when the CRDs disagree, and only warns when they carry no window
+6. Runs `helm dependency update`
+7. Packages the chart into a `openeverest-<CHART_VERSION>.tgz`
+8. Regenerates `index.yaml` on the `gh-pages` branch (preserving prior releases)
+9. Commits and pushes `gh-pages`
 
 After pushing, the chart is available within minutes:
 
@@ -218,6 +220,7 @@ This does **not** call `publish` — dev builds are not pushed to the public Hel
 | `make publish VERSION=x.y.z` | Package chart and push to `gh-pages` |
 | `make release-and-publish VERSION=x.y.z` | `release` + `publish` in one step |
 | `make release-dev VERSION=x.y.z` | Dev release with `-dev` images, telemetry off |
+| `make annotate-chart VERSION=x.y.z` | Record the release and the CRDs' compatibility window in `Chart.yaml` annotations (part of `release`) |
 | `make crds-gen CRD_VERSION=<ref>` | Regenerate CRD templates from upstream operator |
 | `make link-crds` | Refresh symlinks in `crds/` from CRD templates |
 | `make docs-gen` | Regenerate `README.md` via `helm-docs` (requires Docker) |
