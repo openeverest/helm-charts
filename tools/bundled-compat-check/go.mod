@@ -5,7 +5,7 @@ go 1.27.1
 require (
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.1
-	github.com/openeverest/openeverest/v2 v2.0.0-dev.2.0.20261123230825-5a38fe56add1
+	github.com/openeverest/openeverest/v2 v2.0.0-dev.2.0.20261124172223-1ac243881dda
 	github.com/stretchr/testify v1.12.1
 	k8s.io/apimachinery v0.37.2
 	oras.land/oras-go/v2 v2.7.0

@@ -23,8 +23,8 @@ github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.1 h1:y0fUlFfIZhPF1W537XOLg0/fcx6zcHCJwooC2xJA040=
 github.com/opencontainers/image-spec v1.1.1/go.mod h1:qpqAh3Dmcf36wStyyWU+kCeDgrGnAve2nCC8+7h8Q0M=
-github.com/openeverest/openeverest/v2 v2.0.0-dev.2.0.20261123230825-5a38fe56add1 h1:ls9ZC7n5jSNkg8aw420uki+At1TOOlcBVuLH6aM+N2U=
-github.com/openeverest/openeverest/v2 v2.0.0-dev.2.0.20261123230825-5a38fe56add1/go.mod h1:mYF7STRFhUBgGYCmjdiX9j2NUNTBRW6rBlgzUd3Qb4k=
+github.com/openeverest/openeverest/v2 v2.0.0-dev.2.0.20261124172223-1ac243881dda h1:Jesv9xGzUko3ipB+F0WhxFaftzIv8ZPPUGP8cxFdnMw=
+github.com/openeverest/openeverest/v2 v2.0.0-dev.2.0.20261124172223-1ac243881dda/go.mod h1:mYF7STRFhUBgGYCmjdiX9j2NUNTBRW6rBlgzUd3Qb4k=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRIccs7FGNTlIRMkT8wgtp5eCXdBlqhYGL6U=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=

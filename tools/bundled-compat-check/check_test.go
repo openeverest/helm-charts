@@ -140,10 +140,21 @@ func TestCheck(t *testing.T) {
 			wantFetched: []string{pluginHubRef},
 		},
 		{
-			name:       "extension built for an unreleased core",
+			name:       "extension built for an unreleased core after a release",
 			chart:      coreChart(window),
 			lock:       coreLock,
-			charts:     pluginHub("2.1.1-dev"),
+			charts:     pluginHub("2.2.0-alpha.0"),
+			wantFailed: true,
+			wantOutput: []string{
+				"error: plugin-hub 0.1.18 needs a newer, unreleased OpenEverest build",
+			},
+			wantFetched: []string{pluginHubRef},
+		},
+		{
+			name:       "extension built for an unreleased core after a pre-release",
+			chart:      coreChart(window),
+			lock:       coreLock,
+			charts:     pluginHub("2.2.0-alpha.1.next"),
 			wantFailed: true,
 			wantOutput: []string{
 				"error: plugin-hub 0.1.18 needs a newer, unreleased OpenEverest build",
