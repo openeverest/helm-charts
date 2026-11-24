@@ -12,6 +12,13 @@ release:
 		yq eval '.metadata.labels["$(VERSION_LABEL)"] = "$(VERSION)"' $$crd -i; \
 	done
 
+# Argo CD applies lower sync waves first and stops at a wave that fails.
+# Extensions put the objects OpenEverest checks against the compatibility
+# window stamped on these CRDs at wave -1, so the CRDs, and the window they
+# carry, are applied one wave earlier. Helm and Flux ignore the annotation.
+SYNC_WAVE_ANNOTATION := argocd.argoproj.io/sync-wave
+CRD_SYNC_WAVE := -2
+
 OPENEVEREST_REPO_URL ?= https://github.com/openeverest/openeverest
 CRD_DIR ?= config/crd
 CRD_VERSION ?= main
@@ -28,3 +35,6 @@ crds-gen:
 		build $(OPENEVEREST_REPO_URL)/$(CRD_DIR)?ref=$(OPENEVEREST_CRD_VERSION) > $(CRD_SUBCHART_DIR)/$$crd_tmp_file --output templates;
 
 	@bash $(CRD_SUBCHART_DIR)/scripts/labels.sh templates "everest.percona.com/crd=true,$(VERSION_LABEL)=$(VERSION)";
+	@for crd in templates/*.yaml; do \
+		yq eval '.metadata.annotations["$(SYNC_WAVE_ANNOTATION)"] = "$(CRD_SYNC_WAVE)"' $$crd -i; \
+	done
