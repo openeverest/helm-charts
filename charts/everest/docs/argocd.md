@@ -11,6 +11,15 @@ Since ArgoCD rerenders templates on every sync, these values will change, leadin
 To resolve this, you need to include these resources in the `spec.ignoreDifferences` fields (see example below).
 * The `everest-accounts` Secret might be managed externally (e.g., via `everestctl`).
 To prevent ArgoCD from overwriting changes applied externally, include this Secret in the `spec.ignoreDifferences` field.
+* Unless `controller.webhook.certs` is set, the chart generates the controller's webhook certificate, and the CA that signs it, at render time.
+It reuses the existing certificate on upgrade (`controller.webhook.preserveTLSCerts`) only through `lookup` and `.Release.IsUpgrade`, neither of which applies under `helm template`, which is how ArgoCD renders the chart.
+So every sync writes a new certificate to the `everest-controller-webhook-server-cert` Secret and a new CA to the `caBundle` of each webhook in the `everest-controller-validating-webhook-configuration` ValidatingWebhookConfiguration.
+The API server trusts the new CA at once, but the controller keeps serving the old certificate until the kubelet refreshes the mounted Secret, so creating a `Backup`, `BackupImport` or `Restore` fails for a minute or so after each sync (the webhooks use `failurePolicy: Fail`).
+To avoid this, add both the Secret's `/data` and the webhooks' `caBundle` to `spec.ignoreDifferences`, and set the `RespectIgnoreDifferences=true` sync option: without it, `ignoreDifferences` only affects the diff and the sync still applies the newly rendered values.
+Always ignore the two together. Ignoring only one of them leaves a `caBundle` that did not sign the served certificate, and the webhooks then reject every request.
+If that has already happened, delete both the Secret and the ValidatingWebhookConfiguration and sync: ArgoCD recreates them from a single render, which is also how to rotate the certificate later.
+The same applies to the server's certificate when `server.tls.enabled=true` and neither `server.tls.secret.certs` nor `server.tls.certificate.create` is set: every sync replaces the certificate in the `everest-server-tls` Secret (`server.tls.secret.name`), so ignore its `/data` too.
+None of these entries is needed for certificates you supply through `controller.webhook.certs` or `server.tls.secret.certs`, or that cert-manager issues (`server.tls.certificate.create`).
 * During chart upgrades, OpenEverest uses a `pre-upgrade` hook to verify some prerequisites.
 ArgoCD treats this as a `PreSync` hook, causing upgrade checks to run on every sync, which will eventually fail.
 To avoid this, disable the upgrade checks by setting `upgrade.preflightChecks=false`.
@@ -29,6 +38,7 @@ spec:
   syncPolicy:
     syncOptions:
     - CreateNamespace=true
+    # Keeps the sync from overwriting the fields in ignoreDifferences.
     - RespectIgnoreDifferences=true
     # To prevent issues with synchronising some CRDs.
     - ServerSideApply=true
@@ -51,6 +61,31 @@ spec:
     - /data
     kind: Secret
     name: everest-accounts
+    namespace: everest-system
+  # Unless `controller.webhook.certs` is set, the chart generates a new
+  # webhook certificate and CA on each render. Ignore the Secret and the
+  # webhooks' caBundle together, or they stop matching and the webhooks
+  # reject every request. RespectIgnoreDifferences=true keeps the sync
+  # from overwriting them.
+  - group: ""
+    jsonPointers:
+    - /data
+    kind: Secret
+    name: everest-controller-webhook-server-cert
+    namespace: everest-system
+  - group: admissionregistration.k8s.io
+    jqPathExpressions:
+    - .webhooks[]?.clientConfig.caBundle
+    kind: ValidatingWebhookConfiguration
+    name: everest-controller-validating-webhook-configuration
+  # If `server.tls.enabled=true` without `server.tls.secret.certs` or
+  # `server.tls.certificate.create`, the chart generates a new self-signed
+  # server certificate on each render.
+  - group: ""
+    jsonPointers:
+    - /data
+    kind: Secret
+    name: everest-server-tls
     namespace: everest-system
   ...
   source:

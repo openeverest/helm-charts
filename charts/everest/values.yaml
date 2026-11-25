@@ -214,6 +214,7 @@ controller:
     # This setting is ignored if certificates are explicitly provided in controller.webhook.certs,
     # in which case the specified certificates are used instead.
     # This setting has no effect during installation.
+    # It also has no effect under `helm template`, which is how Argo CD renders the chart: see docs/argocd.md.
     # @default -- true
     preserveTLSCerts: true
 # -- URL of the Version Metadata Service.
