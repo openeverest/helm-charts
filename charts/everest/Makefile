@@ -95,14 +95,13 @@ link-crds:
 
 OPENEVEREST_REPO_URL ?= https://github.com/openeverest/openeverest
 CRD_DIR ?= config/crd
-CRD_VERSION ?= main
-# FIXME: this is temporary until we have a split between v1 and v2
-OPENEVEREST_CRD_VERSION ?= release-2.0
+# The openeverest branch, tag or commit that crds-gen, controller-manifests-gen
+# and backupstorageclasses-gen sync from. main carries v2.
+OPENEVEREST_CRD_VERSION ?= main
 .PHONY: crds-gen
 crds-gen:
 	OPENEVEREST_REPO_URL=$(OPENEVEREST_REPO_URL) \
 	CRD_DIR=$(CRD_DIR) \
-	CRD_VERSION=$(CRD_VERSION) \
 	OPENEVEREST_CRD_VERSION=$(OPENEVEREST_CRD_VERSION) \
 	VERSION=$(VERSION) \
 	CRD_SUBCHART_DIR=$(PWD)/charts/everest-crds \
@@ -126,7 +125,6 @@ backupstorageclasses-gen: ## Sync the built-in BackupStorageClasses from the ope
 prepare-pr:
 	$(MAKE) deps
 	$(MAKE) docs-gen
-	CRD_DIR=$(CRD_DIR) \
-	CRD_VERSION=$(CRD_VERSION) $(MAKE) crds-gen link-crds
+	CRD_DIR=$(CRD_DIR) $(MAKE) crds-gen link-crds
 	$(MAKE) controller-manifests-gen
 	$(MAKE) backupstorageclasses-gen

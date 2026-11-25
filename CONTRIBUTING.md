@@ -119,7 +119,7 @@ make prepare-pr
 This will:
 - Re-run `helm dependency update` for all charts
 - Regenerate `README.md` from `README.md.gotmpl` via `helm-docs`
-- Optionally regenerate CRDs from upstream (see [Updating CRDs](#updating-crds) below)
+- Re-sync the CRDs, the controller RBAC and the built-in BackupStorageClasses from [`openeverest/openeverest`](https://github.com/openeverest/openeverest) at `OPENEVEREST_CRD_VERSION`, `main` by default (see [Updating CRDs](#updating-crds) below)
 
 Commit the resulting changes along with your feature work.
 
@@ -127,15 +127,15 @@ Commit the resulting changes along with your feature work.
 
 ## Updating CRDs
 
-If your change requires refreshing the CRDs from the upstream operator repository, run:
+If your change requires refreshing the CRDs from the [`openeverest/openeverest`](https://github.com/openeverest/openeverest) repository, run:
 
 ```bash
-make crds-gen CRD_VERSION=<tag-or-branch>
+make crds-gen OPENEVEREST_CRD_VERSION=<branch-tag-or-commit>
 make link-crds
 ```
 
-- `CRD_VERSION` defaults to `main`. Use a specific tag (e.g. `v1.14.0`) to pin to a release.
-- `crds-gen` fetches CRDs from [`openeverest/openeverest-operator`](https://github.com/openeverest/openeverest-operator) via `kustomize` (runs in Docker — no local `kustomize` install needed).
+- `OPENEVEREST_CRD_VERSION` defaults to `main`, the openeverest branch that carries v2. Pass a tag or a commit SHA to pin the sync to a release or to a reproducible point. `controller-manifests-gen` and `backupstorageclasses-gen` sync from the same ref.
+- `crds-gen` fetches the CRDs from `config/crd` in `openeverest/openeverest` via `kustomize` (runs in Docker — no local `kustomize` install needed).
 - `crds-gen` labels every CRD with `everest.percona.com/crd: "true"` and `openeverest.io/version` (= `VERSION`).
 - `link-crds` updates the symlinks in the top-level `crds/` directory.
 
@@ -222,6 +222,6 @@ This does **not** call `publish` — dev builds are not pushed to the public Hel
 | `make release-and-publish VERSION=x.y.z` | `release` + `publish` in one step |
 | `make release-dev VERSION=x.y.z` | Dev release with `-dev` images, telemetry off |
 | `make annotate-chart VERSION=x.y.z` | Record the release and the CRDs' compatibility window in `Chart.yaml` annotations (part of `release`) |
-| `make crds-gen CRD_VERSION=<ref>` | Regenerate CRD templates from upstream operator |
+| `make crds-gen OPENEVEREST_CRD_VERSION=<ref>` | Regenerate CRD templates from `openeverest/openeverest` (default ref `main`) |
 | `make link-crds` | Refresh symlinks in `crds/` from CRD templates |
 | `make docs-gen` | Regenerate `README.md` via `helm-docs` (requires Docker) |

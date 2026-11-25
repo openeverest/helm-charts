@@ -133,7 +133,7 @@ please make sure you perform the following actions before creating PR:
     make prepare-pr
     ```
 
-In case you need to update the OpenEverest Custom Resource Definitions (CRDs) after the changes in `github.com/openeverest/openeverest` repository, please run the following command:
+`make prepare-pr` also syncs the OpenEverest Custom Resource Definitions (CRDs), the controller RBAC and the built-in BackupStorageClasses from the `main` branch of the `github.com/openeverest/openeverest` repository. To sync them from another branch, a tag or a commit, run:
 ```bash
-CRD_VERSION=<branch name in openeverest/openeverest repo> make prepare-pr
+OPENEVEREST_CRD_VERSION=<branch, tag or commit in openeverest/openeverest repo> make prepare-pr
 ```
