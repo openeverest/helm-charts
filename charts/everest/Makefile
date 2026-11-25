@@ -18,8 +18,16 @@ prepare-chart:
 	yq eval -i '.server.image.repository = "$(IMAGE_PREFIX)/$(EVEREST_SERVER_IMAGE_NAME)"' values.yaml
 	yq eval -i '.telemetry = $(TELEMETRY)' values.yaml
 	yq eval -i '(.dependencies[] | select(.name == "everest-crds")).version = "${CHART_VERSION}"' Chart.yaml
+	$(MAKE) annotate-chart
 	$(MAKE) deps
 	
+
+.PHONY: annotate-chart
+annotate-chart: ## Record the core release and the compatibility window of its CRDs in Chart.yaml annotations.
+	CHART_FILE=Chart.yaml \
+	CRD_DIR=charts/everest-crds/templates \
+	VERSION=$(VERSION) \
+	bash scripts/annotate-chart.sh
 
 .PHONY: release-crds
 release-crds:

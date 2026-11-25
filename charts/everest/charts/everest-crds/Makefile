@@ -1,4 +1,7 @@
 VERSION ?= 0.0.0
+# The core release these CRDs belong to. templates/check-crd.yaml in the parent
+# chart compares it with the chart's appVersion on upgrade.
+VERSION_LABEL := openeverest.io/version
 .PHONY: release
 release:
 	@if [ -z "$(VERSION)" ]; then \
@@ -6,7 +9,7 @@ release:
 		exit 1; \
 	fi
 	@for crd in templates/*.yaml; do \
-		yq eval '.metadata.labels["everest.percona.com/version"] = "$(VERSION)"' $$crd -i; \
+		yq eval '.metadata.labels["$(VERSION_LABEL)"] = "$(VERSION)"' $$crd -i; \
 	done
 
 OPENEVEREST_REPO_URL ?= https://github.com/openeverest/openeverest
@@ -24,4 +27,4 @@ crds-gen:
 		registry.k8s.io/kustomize/kustomize:v5.7.0 \
 		build $(OPENEVEREST_REPO_URL)/$(CRD_DIR)?ref=$(OPENEVEREST_CRD_VERSION) > $(CRD_SUBCHART_DIR)/$$crd_tmp_file --output templates;
 
-	@bash $(CRD_SUBCHART_DIR)/scripts/labels.sh templates "everest.percona.com/crd=true,everest.percona.com/version=$(VERSION)";
+	@bash $(CRD_SUBCHART_DIR)/scripts/labels.sh templates "everest.percona.com/crd=true,$(VERSION_LABEL)=$(VERSION)";
