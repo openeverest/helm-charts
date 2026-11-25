@@ -120,6 +120,7 @@ The following table shows the configurable parameters of the OpenEverest chart a
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| compatibility.openshift | bool | `false` | Treat the cluster as OpenShift: pods leave runAsUser to the restricted-v2 SCC, which assigns a UID from the namespace range. Detected automatically from the SecurityContextConstraints API; set it when rendering without cluster access (helm template). |
 | controller.affinity | object | `{}` | Affinity settings for the controller pods. When empty and `controller.replicas` is above 1, the replicas prefer different nodes. |
 | controller.command | string | `"/everest-controller"` | Command to run in the controller container. |
 | controller.enabled | bool | `true` | If set, enables the Everest controller manager. |

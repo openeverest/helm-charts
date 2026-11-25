@@ -26,8 +26,7 @@ spec:
       automountServiceAccountToken: true
       securityContext:
         runAsNonRoot: true
-        # The image is built FROM scratch with no USER directive, so it would run as root.
-        runAsUser: 65532
+        {{- include "everest.podRunAsUser" . | nindent 8 }}
         seccompProfile:
           type: RuntimeDefault
       {{- with .Values.server.nodeSelector }}

@@ -17,6 +17,11 @@ hooks:
       repository: ""
       # -- Tag for the upgrade checks image. Defaults to `hooks.image.tag` if not set.
       tag: ""
+compatibility:
+  # -- Treat the cluster as OpenShift: pods leave runAsUser to the restricted-v2 SCC, which assigns a UID from the
+  # namespace range. Detected automatically from the SecurityContextConstraints API; set it when rendering without
+  # cluster access (helm template).
+  openshift: false
 # -- Namespace override. Defaults to the value of .Release.Namespace.
 namespaceOverride: ""
 # -- If set, enabled sending telemetry information.

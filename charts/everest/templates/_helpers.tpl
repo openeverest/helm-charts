@@ -17,6 +17,27 @@ Mutual exclusion validation
 
 
 {{/*
+Whether the target cluster is OpenShift: forced by compatibility.openshift,
+otherwise detected from the SecurityContextConstraints API.
+*/}}
+{{- define "everest.isOpenShift" -}}
+{{- if or (dig "compatibility" "openshift" false .Values.AsMap) (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+true
+{{- end -}}
+{{- end }}
+
+{{/*
+Pod runAsUser for the scratch-based Everest image, which declares no USER.
+Omitted on OpenShift: its restricted-v2 SCC assigns a UID from the namespace
+range and rejects any other.
+*/}}
+{{- define "everest.podRunAsUser" -}}
+{{- if not (include "everest.isOpenShift" .) }}
+runAsUser: 65532
+{{- end }}
+{{- end }}
+
+{{/*
 Allows overriding the install namespace in combined charts.
 */}}
 {{- define "everest.namespace" -}}

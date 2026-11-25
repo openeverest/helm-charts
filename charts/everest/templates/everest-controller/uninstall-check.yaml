@@ -111,7 +111,7 @@ spec:
       restartPolicy: Never
       securityContext:
         runAsNonRoot: true
-        runAsUser: 65532
+        {{- include "everest.podRunAsUser" . | nindent 8 }}
         seccompProfile:
           type: RuntimeDefault
       serviceAccountName: {{ $hookName }}
