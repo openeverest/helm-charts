@@ -24,6 +24,12 @@ spec:
     spec:
       serviceAccountName: everest-admin
       automountServiceAccountToken: true
+      securityContext:
+        runAsNonRoot: true
+        # The image is built FROM scratch with no USER directive, so it would run as root.
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
       {{- with .Values.server.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -72,6 +78,12 @@ spec:
           initialDelaySeconds: 300
           periodSeconds: 15
         resources: {{ toYaml .Values.server.resources | nindent 12 }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
         volumeMounts:
         - name: jwt-secret
           mountPath: /etc/jwt

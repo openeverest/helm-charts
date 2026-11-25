@@ -111,8 +111,8 @@ to the defaults built into the chart. To preserve the previously set values, you
 Alternatively, provide the full set of values, including any overrides applied during installation.
 * It is recommended to upgrade 1 minor release at a time, otherwise you may run into unexpected issues.
 * It is recommended to upgrade to the latest patch release first before upgrading to the next minor release.
-* To ensure that the upgrade happens safely, we run a pre-upgrade hook that runs a series of checks. This can be disabled by setting `upgrade.preflightChecks=false`.
-However, in doing so, a safe upgrade cannot be guaranteed.
+* The pre-upgrade checks hook (`upgrade.preflightChecks`) is disabled by default: it downloads `everestctl` from GitHub releases,
+which OpenEverest 2.x does not publish yet, so it fails every upgrade and cannot run in air-gapped clusters or under the `restricted` Pod Security Standard.
 
 ## Configuration
 

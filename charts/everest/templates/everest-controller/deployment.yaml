@@ -109,6 +109,8 @@ spec:
         # defaults to root (UID 0). Setting runAsUser here explicitly overrides
         # that default to satisfy the runAsNonRoot constraint.
         runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
       serviceAccountName: everest-controller-manager
       terminationGracePeriodSeconds: 10
       volumes:
