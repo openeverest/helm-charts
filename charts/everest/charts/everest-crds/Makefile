@@ -19,6 +19,9 @@ OPENEVEREST_CRD_VERSION ?= main
 CRD_SUBCHART_DIR ?= $(PWD)
 .PHONY: crds-gen
 crds-gen:
+	@# Start empty, so that a CRD openeverest no longer builds is dropped, not
+	@# shipped stale.
+	@rm -f templates/*.yaml
 	@crd_tmp_file="crd.tmp.yaml"; \
 	docker run --rm \
 		-v "$(CRD_SUBCHART_DIR)":/workspace \

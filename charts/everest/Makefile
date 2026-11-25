@@ -88,6 +88,8 @@ test:
 .PHONY: link-crds
 link-crds:
 	@mkdir -p crds
+	@# Drop the links to CRDs that crds-gen no longer writes.
+	@find crds -maxdepth 1 -type l -name '*.yaml' -delete
 	@for crd in charts/everest-crds/templates/*.yaml; do \
 		ln -sf "../$${crd}" crds/; \
 		echo "Linked $$crd → crds/"; \
