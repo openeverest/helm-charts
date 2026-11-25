@@ -4,6 +4,11 @@
   {{- $_ := set .Values.ingress.annotations "kubernetes.io/ingress.class" .Values.ingress.ingressClassName}}
   {{- end }}
 {{- end }}
+{{- /* Match the Service port: it switches to 443 when TLS is enabled (see service.yaml). */ -}}
+{{- $backendPort := .Values.server.service.port -}}
+{{- if .Values.server.tls.enabled -}}
+{{- $backendPort = 443 -}}
+{{- end -}}
 {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
 {{- else -}}
@@ -48,10 +53,10 @@ spec:
               service:
                 name: {{ $.Values.server.service.name }}
                 port:
-                  number: {{ $.Values.server.service.port }}
+                  number: {{ $backendPort }}
               {{- else }}
               serviceName: {{ $.Values.server.service.name }}
-              servicePort: {{ $.Values.server.service.port }}
+              servicePort: {{ $backendPort }}
               {{- end }}
           {{- end }}
     {{- end }}
