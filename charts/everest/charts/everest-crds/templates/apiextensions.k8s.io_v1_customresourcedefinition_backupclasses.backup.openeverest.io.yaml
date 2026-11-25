@@ -3,7 +3,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.18.0
-    argocd.argoproj.io/sync-wave: "-2"
   name: backupclasses.backup.openeverest.io
   labels:
     everest.percona.com/crd: "true"

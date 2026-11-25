@@ -136,7 +136,7 @@ make link-crds
 
 - `CRD_VERSION` defaults to `main`. Use a specific tag (e.g. `v1.14.0`) to pin to a release.
 - `crds-gen` fetches CRDs from [`openeverest/openeverest-operator`](https://github.com/openeverest/openeverest-operator) via `kustomize` (runs in Docker — no local `kustomize` install needed).
-- `crds-gen` labels every CRD with `everest.percona.com/crd: "true"` and `openeverest.io/version` (= `VERSION`), and annotates it with `argocd.argoproj.io/sync-wave: "-2"`. Keep the annotation if you edit a CRD by hand: Argo CD applies lower sync waves first and stops at a wave that fails, and extensions (database providers, plugins, monitoring integrations) put the objects that OpenEverest checks against the compatibility window on these CRDs at wave `-1`. The CRDs, and the window they carry, must therefore be applied first, both on a fresh install and when an upgrade moves the window. Helm and Flux ignore the annotation.
+- `crds-gen` labels every CRD with `everest.percona.com/crd: "true"` and `openeverest.io/version` (= `VERSION`).
 - `link-crds` updates the symlinks in the top-level `crds/` directory.
 
 Commit the updated files in `charts/everest-crds/templates/` and `crds/`.
