@@ -14,12 +14,14 @@ release:
 
 OPENEVEREST_REPO_URL ?= https://github.com/openeverest/openeverest
 CRD_DIR ?= config/crd
-CRD_VERSION ?= main
-# FIXME: this is temporary until we have a split between v1 and v2
-OPENEVEREST_CRD_VERSION ?= v2
+# The openeverest branch, tag or commit to sync the CRDs from. main carries v2.
+OPENEVEREST_CRD_VERSION ?= main
 CRD_SUBCHART_DIR ?= $(PWD)
 .PHONY: crds-gen
 crds-gen:
+	@# Start empty, so that a CRD openeverest no longer builds is dropped, not
+	@# shipped stale.
+	@rm -f templates/*.yaml
 	@crd_tmp_file="crd.tmp.yaml"; \
 	docker run --rm \
 		-v "$(CRD_SUBCHART_DIR)":/workspace \

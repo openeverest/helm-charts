@@ -6,7 +6,7 @@
 #
 # Usage:
 #   OPENEVEREST_REPO_URL=https://github.com/openeverest/openeverest \
-#   OPENEVEREST_VERSION=v2 \
+#   OPENEVEREST_VERSION=main \
 #   OUTPUT_DIR=templates/everest-controller \
 #     ./scripts/sync-controller-rbac.sh
 #
