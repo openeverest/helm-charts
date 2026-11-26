@@ -111,8 +111,8 @@ to the defaults built into the chart. To preserve the previously set values, you
 Alternatively, provide the full set of values, including any overrides applied during installation.
 * It is recommended to upgrade 1 minor release at a time, otherwise you may run into unexpected issues.
 * It is recommended to upgrade to the latest patch release first before upgrading to the next minor release.
-* To ensure that the upgrade happens safely, we run a pre-upgrade hook that runs a series of checks. This can be disabled by setting `upgrade.preflightChecks=false`.
-However, in doing so, a safe upgrade cannot be guaranteed.
+* The pre-upgrade checks hook (`upgrade.preflightChecks`) is disabled by default: it downloads `everestctl` from GitHub releases,
+which OpenEverest 2.x does not publish yet, so it fails every upgrade and cannot run in air-gapped clusters or under the `restricted` Pod Security Standard.
 
 ## Configuration
 
@@ -120,6 +120,7 @@ The following table shows the configurable parameters of the OpenEverest chart a
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| compatibility.openshift | bool | `false` | Treat the cluster as OpenShift: pods leave runAsUser to the restricted-v2 SCC, which assigns a UID from the namespace range. Detected automatically from the SecurityContextConstraints API; set it when rendering without cluster access (helm template). |
 | controller.affinity | object | `{}` | Affinity settings for the controller pods. When empty and `controller.replicas` is above 1, the replicas prefer different nodes. |
 | controller.command | string | `"/everest-controller"` | Command to run in the controller container. |
 | controller.enabled | bool | `true` | If set, enables the Everest controller manager. |
@@ -203,7 +204,7 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | server.topologySpreadConstraints | list | `[]` | Topology spread constraints for the server pod. |
 | telemetry | bool | `true` | If set, enabled sending telemetry information. In production release, this value is `true` by default. |
 | upgrade.crdChecks | bool | `true` | Ensures that CRDs are upgraded first (default: true). Set to false to disable. |
-| upgrade.preflightChecks | bool | `true` | Ensures that preflight checks are run before the upgrade (default: true). Set to false to disable. |
+| upgrade.preflightChecks | bool | `false` | Runs the everestctl upgrade checks in a pre-upgrade hook Job. Off by default: the hook downloads everestctl from GitHub releases, which OpenEverest 2.x does not publish yet, and it cannot run as non-root. |
 | versionMetadataURL | string | `"https://check.percona.com"` | URL of the Version Metadata Service. |
 
 ## Notice for developers
