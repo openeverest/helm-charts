@@ -17,7 +17,7 @@ prepare-chart:
 		yq eval -i '.appVersion = "${VERSION}"' $$chart; \
 	done
 	yq eval -i '.server.image.repository = "$(IMAGE_PREFIX)/$(EVEREST_SERVER_IMAGE_NAME)"' values.yaml
-	yq eval -i '.telemetry = $(TELEMETRY)' values.yaml
+	yq eval -i '.telemetry.enabled = $(TELEMETRY)' values.yaml
 	yq eval -i '(.dependencies[] | select(.name == "everest-crds")).version = "${CHART_VERSION}"' Chart.yaml
 	$(MAKE) annotate-chart
 	$(MAKE) deps

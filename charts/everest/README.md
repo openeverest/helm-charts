@@ -131,7 +131,10 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | controller.image.repository | string | `""` | Repository for the controller image. Defaults to `server.image.repository` if not set. |
 | controller.image.tag | string | `""` | Tag for the controller image. Defaults to `server.image.tag` (or `.Chart.AppVersion`) if not set. |
 | controller.leaderElection | object | `{"enabled":true}` | Enable leader election for the controller manager. |
-| controller.metricsBindAddress | string | `"0"` | Metrics address for the controller. |
+| controller.metrics.serviceMonitor.enabled | bool | `false` | Creates a Prometheus Operator ServiceMonitor for the controller's metrics endpoint. Needs the monitoring.coreos.com CRDs. |
+| controller.metrics.serviceMonitor.interval | string | `""` | Scrape interval. Empty: the Prometheus default. |
+| controller.metrics.serviceMonitor.labels | object | `{}` | Additional labels for the ServiceMonitor, e.g. the ones your Prometheus selects ServiceMonitors by. |
+| controller.metricsBindAddress | string | `":8443"` | Address of the controller's metrics endpoint, served over HTTPS to clients Kubernetes authenticates and authorizes: bind the `everest-metrics-reader` ClusterRole to the service account that scrapes it. The endpoint also exposes the openeverest_* inventory metrics. "0" turns it off. |
 | controller.replicas | int | `2` | Number of controller manager replicas. The controllers run on the elected leader only, while every replica serves the admission webhooks, which fail closed: with more than one replica, Backup, Restore and BackupImport creates keep working while a replica restarts. More than one replica requires `controller.leaderElection.enabled`. |
 | controller.resources | object | `{"limits":{"cpu":"500m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"64Mi"}}` | Resources to allocate for the controller container. |
 | controller.webhook.certs | object | `{"ca.crt":"","tls.crt":"","tls.key":""}` | Certificates to use for the webhook server. The values must be base64 encoded. If unset, uses self-signed certificates. |
@@ -202,7 +205,10 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | server.tls.secret.name | string | `"everest-server-tls"` | Name of the Secret containing the TLS certificates. This Secret is created if tls.enabled=true and certificate.create=false. |
 | server.tolerations | list | `[]` | Tolerations for the server pod. |
 | server.topologySpreadConstraints | list | `[]` | Topology spread constraints for the server pod. |
-| telemetry | bool | `true` | If set, enabled sending telemetry information. In production release, this value is `true` by default. |
+| telemetry.dryRun | bool | `false` | Writes the report to the server log instead of sending it. |
+| telemetry.enabled | bool | `true` | Sends the anonymous usage report. Only release and RC builds have an endpoint to send it to. |
+| telemetry.interval | string | `""` | How often the report is sent, at least `1h`. Empty: `24h`. |
+| telemetry.url | string | `""` | Where the report is sent, instead of the endpoint the build sets, e.g. an organisation's own collector. |
 | upgrade.crdChecks | bool | `true` | Ensures that CRDs are upgraded first (default: true). Set to false to disable. |
 | upgrade.preflightChecks | bool | `false` | Runs the everestctl upgrade checks in a pre-upgrade hook Job. Off by default: the hook downloads everestctl from GitHub releases, which OpenEverest 2.x does not publish yet, and it cannot run as non-root. |
 | versionMetadataURL | string | `"https://check.percona.com"` | URL of the Version Metadata Service. |

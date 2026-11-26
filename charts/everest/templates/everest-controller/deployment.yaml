@@ -67,6 +67,11 @@ spec:
         - containerPort: 8081
           name: health
           protocol: TCP
+        {{- with (include "everest.controllerMetricsPort" .) }}
+        - containerPort: {{ . }}
+          name: metrics
+          protocol: TCP
+        {{- end }}
         livenessProbe:
           httpGet:
             path: /healthz

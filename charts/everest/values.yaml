@@ -24,9 +24,17 @@ compatibility:
   openshift: false
 # -- Namespace override. Defaults to the value of .Release.Namespace.
 namespaceOverride: ""
-# -- If set, enabled sending telemetry information.
-# In production release, this value is `true` by default.
-telemetry: true
+# Anonymous usage telemetry: https://openeverest.io/docs/reference/telemetry.
+# The boolean form `telemetry: false` (or `--set telemetry=false`) is still accepted.
+telemetry:
+  # -- Sends the anonymous usage report. Only release and RC builds have an endpoint to send it to.
+  enabled: true
+  # -- Where the report is sent, instead of the endpoint the build sets, e.g. an organisation's own collector.
+  url: ""
+  # -- How often the report is sent, at least `1h`. Empty: `24h`.
+  interval: ""
+  # -- Writes the report to the server log instead of sending it.
+  dryRun: false
 server:
   # -- Image to use for the server container.
   image:
@@ -185,8 +193,19 @@ controller:
   replicas: 2
   # -- Health probe address for the controller.
   healthProbeBindAddress: ":8081"
-  # -- Metrics address for the controller.
-  metricsBindAddress: "0"
+  # -- Address of the controller's metrics endpoint, served over HTTPS to clients Kubernetes authenticates
+  # and authorizes: bind the `everest-metrics-reader` ClusterRole to the service account that scrapes it.
+  # The endpoint also exposes the openeverest_* inventory metrics. "0" turns it off.
+  metricsBindAddress: ":8443"
+  metrics:
+    serviceMonitor:
+      # -- Creates a Prometheus Operator ServiceMonitor for the controller's metrics endpoint.
+      # Needs the monitoring.coreos.com CRDs.
+      enabled: false
+      # -- Additional labels for the ServiceMonitor, e.g. the ones your Prometheus selects ServiceMonitors by.
+      labels: {}
+      # -- Scrape interval. Empty: the Prometheus default.
+      interval: ""
   # -- Enable leader election for the controller manager.
   leaderElection:
     enabled: true
