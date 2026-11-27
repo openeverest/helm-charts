@@ -3,6 +3,7 @@
 # @param .version               Version to upgrade to
 # @param .versionMetadataURL    The URL of the version metadata service
 # @param .image                 The image to use for running the hook Job
+# @param .imagePullPolicy       The pull policy for the hook Job image (optional)
 #
 {{- define "everest.preUpgradeChecks" }}
 {{- $hookName := printf "everest-helm-pre-upgrade-hook" }}
@@ -100,6 +101,9 @@ spec:
     spec:
       containers:
         - image: {{ .image }}
+          {{- with .imagePullPolicy }}
+          imagePullPolicy: {{ . }}
+          {{- end }}
           name: {{ $hookName }}
           env:
             - name: NAMESPACE
