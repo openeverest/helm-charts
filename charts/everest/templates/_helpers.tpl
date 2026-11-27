@@ -108,6 +108,27 @@ admin:
     - login
 {{- end}}
 
+{{/*
+"true" when telemetry is on. telemetry is a map; the boolean it used to be is still accepted.
+*/}}
+{{- define "everest.telemetryEnabled" -}}
+{{- if kindIs "bool" .Values.telemetry -}}
+{{- .Values.telemetry -}}
+{{- else -}}
+{{- dig "enabled" true (.Values.telemetry | default dict) -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+The port of the controller's metrics endpoint, or "" when it is off.
+*/}}
+{{- define "everest.controllerMetricsPort" -}}
+{{- $addr := toString .Values.controller.metricsBindAddress -}}
+{{- if and $addr (ne $addr "0") -}}
+{{- regexReplaceAll "^.*:" $addr "" -}}
+{{- end -}}
+{{- end }}
+
 {{- define "everest.versionMetadataURL" }}
 {{- trimSuffix "/" (default "https://check.percona.com" .Values.versionMetadataURL) -}}
 {{- end }}

@@ -1,0 +1,100 @@
+{{- if .Values.controller.enabled }}
+{{- with (include "everest.controllerMetricsPort" .) }}
+{{- $port := . }}
+---
+# The metrics endpoint authenticates and authorizes its clients with
+# TokenReviews and SubjectAccessReviews.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: everest-controller-metrics-auth
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: everest-controller-metrics-auth
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: everest-controller-metrics-auth
+subjects:
+- kind: ServiceAccount
+  name: everest-controller-manager
+  namespace: {{ include "everest.namespace" $ }}
+---
+# Bind it to whatever scrapes the controller's metrics endpoint. The
+# openeverest_* metrics name every namespace, instance and backup storage, so
+# anyone with this role sees the whole inventory, whatever their OpenEverest
+# permissions.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: everest-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: everest-controller-metrics
+  namespace: {{ include "everest.namespace" $ }}
+  labels:
+    app: everest-controller
+    app.kubernetes.io/component: metrics
+spec:
+  selector:
+    app: everest-controller
+  ports:
+  - name: https
+    port: {{ $port }}
+    targetPort: metrics
+    protocol: TCP
+{{- with $.Values.controller.metrics.serviceMonitor }}
+{{- if .enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: everest-controller
+  namespace: {{ include "everest.namespace" $ }}
+  labels:
+    app: everest-controller
+    {{- with .labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app: everest-controller
+      app.kubernetes.io/component: metrics
+  endpoints:
+  - port: https
+    scheme: https
+    path: /metrics
+    {{- with .interval }}
+    interval: {{ . }}
+    {{- end }}
+    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    tlsConfig:
+      # The controller serves a self-signed certificate.
+      insecureSkipVerify: true
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -92,9 +92,23 @@ spec:
           readOnly: true
         {{- end }}
         env:
-        {{- if not .Values.telemetry }}
+        {{- if ne (include "everest.telemetryEnabled" .) "true" }}
         - name: DISABLE_TELEMETRY
           value: "true"
+        {{- end }}
+        {{- if kindIs "map" .Values.telemetry }}
+        {{- with .Values.telemetry.url }}
+        - name: TELEMETRY_URL
+          value: {{ . | quote }}
+        {{- end }}
+        {{- with .Values.telemetry.interval }}
+        - name: TELEMETRY_INTERVAL
+          value: {{ . | quote }}
+        {{- end }}
+        {{- if .Values.telemetry.dryRun }}
+        - name: TELEMETRY_DRY_RUN
+          value: "true"
+        {{- end }}
         {{- end }}
         {{- if hasKey .Values.server "apiRequestsRateLimit" }}
         - name: API_REQUESTS_RATE_LIMIT
