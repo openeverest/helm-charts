@@ -24,7 +24,7 @@ compatibility:
   openshift: false
 # -- Namespace override. Defaults to the value of .Release.Namespace.
 namespaceOverride: ""
-# Anonymous usage telemetry: https://openeverest.io/docs/reference/telemetry.
+# Anonymous usage telemetry: https://openeverest.io/docs/current/reference/telemetry/
 # The boolean form `telemetry: false` (or `--set telemetry=false`) is still accepted.
 telemetry:
   # -- Sends the anonymous usage report. Only release and RC builds have an endpoint to send it to.
