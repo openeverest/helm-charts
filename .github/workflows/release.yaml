@@ -5,10 +5,14 @@ on:
       version:
         description: "Everest version"
         required: true
+      chart_version:
+        description: "Chart version, if it differs from the Everest version (a chart-only patch, e.g. 2.0.0-dev.4.1)"
+        required: false
+        default: ""
       branch:
         required: false
         default: main
-        description: "Branch to checkout for chart release"
+        description: "Branch or tag to checkout for chart release"
 
 permissions:
   contents: read
@@ -19,6 +23,7 @@ jobs:
       contents: write
     env:
       VERSION: ${{ github.event.inputs.version }}
+      CHART_VERSION: ${{ github.event.inputs.chart_version || github.event.inputs.version }}
       # Is set if the VERSION corresponds to an RC.
       IS_RC: 0
     runs-on: ubuntu-latest
@@ -35,6 +40,14 @@ jobs:
           ref: ${{ github.event.inputs.branch }}
           sparse-checkout: |
             charts/everest
+
+      # The check comes from this workflow's ref rather than the released one,
+      # so that it also runs when a chart-only patch is cut from an older tag.
+      - name: Checkout release tools
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          path: .release-tools
+          sparse-checkout: |
             tools/bundled-compat-check
 
       - name: Configure Git
@@ -50,8 +63,8 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: tools/bundled-compat-check/go.mod
-          cache-dependency-path: tools/bundled-compat-check/go.sum
+          go-version-file: .release-tools/tools/bundled-compat-check/go.mod
+          cache-dependency-path: .release-tools/tools/bundled-compat-check/go.sum
 
       - name: Prepare RC
         if: ${{ env.IS_RC == '1' }}
@@ -68,7 +81,7 @@ jobs:
       # Runs on the prepared chart: its window and its locked dependencies are
       # the ones the next steps package.
       - name: Check bundled extensions
-        run: make -C charts/everest check-bundled-compat
+        run: go run -C .release-tools/tools/bundled-compat-check . -chart "${GITHUB_WORKSPACE}/charts/everest"
 
       - name: Release chart
         uses: helm/chart-releaser-action@a917fd15b20e8b64b94d9158ad54cd6345335584 # v1.6.0

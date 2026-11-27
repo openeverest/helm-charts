@@ -1,0 +1,131 @@
+name: Bump plugin-hub
+
+# Opens (or refreshes) a pull request that moves the bundled plugin-hub in
+# charts/everest/Chart.lock to the newest release matching Chart.yaml's range.
+# The PR describes whether merging it cuts a chart-only patch release: see
+# plugin-hub-release.yaml.
+#
+# plugin-hub's release workflow can trigger this right away with a
+# repository_dispatch of type plugin-hub-released; the daily run catches
+# anything missed.
+
+on:
+  schedule:
+    # 06:41 UTC daily (off the hour to avoid GitHub's cron congestion).
+    - cron: '41 6 * * *'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [plugin-hub-released]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: plugin-hub-bump
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: Bump plugin-hub
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      BRANCH: ci/bump-plugin-hub
+      LOCK: charts/everest/Chart.lock
+      # Prefer ROBOT_TOKEN: pushes and PRs made with GITHUB_TOKEN don't start
+      # the CI workflows.
+      GH_TOKEN: ${{ secrets.ROBOT_TOKEN || secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: main
+          token: ${{ secrets.ROBOT_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4.3.1
+        with:
+          version: v3.17.0
+
+      - name: Update the lock
+        id: lock
+        run: |
+          set -euo pipefail
+          make -C charts/everest add-repos
+          helm dependency update charts/everest
+          hub() { yq '.dependencies[] | select(.name == "plugin-hub") | .version' "$@"; }
+          old=$(git show "HEAD:${LOCK}" | hub -)
+          new=$(hub "${LOCK}")
+          echo "old=${old}" >> "$GITHUB_OUTPUT"
+          echo "new=${new}" >> "$GITHUB_OUTPUT"
+          if [[ "${old}" == "${new}" ]]; then
+            echo "plugin-hub ${old} is the newest release; nothing to do." | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+          # Other dependencies resolved here ride along: a release resolves
+          # them the same way.
+          git diff -- "${LOCK}"
+
+      - name: Describe the release impact
+        id: impact
+        if: steps.lock.outputs.old != steps.lock.outputs.new
+        env:
+          NEW: ${{ steps.lock.outputs.new }}
+        run: |
+          set -euo pipefail
+          major=$(yq '.version' charts/everest/Chart.yaml | cut -d. -f1)
+          read -r chart app shipped < <(.github/scripts/latest-release.sh "${major}")
+          {
+            echo "Latest release on the ${major}.x line: chart \`${chart}\` (OpenEverest \`${app}\`), bundling plugin-hub \`${shipped}\`."
+            echo
+            if [[ "${shipped}" != "none" ]] && [[ "$(printf '%s\n' "${shipped}" "${NEW}" | sort -V | tail -1)" == "${shipped}" ]]; then
+              echo "That release already ships plugin-hub \`${NEW}\` or newer: merging this cuts no release."
+            elif [[ "${shipped}" != "none" && "$(.github/scripts/plugin-hub-chart-changed.sh "${shipped}" "${NEW}")" == "false" ]]; then
+              echo "plugin-hub's chart only changed its image since \`${shipped}\`: merging this cuts no release. plugin-hub updates its own image in place."
+            elif next=$(.github/scripts/next-chart-patch-version.sh "${chart}" "${app}"); then
+              echo "plugin-hub's chart changed since \`${shipped}\` beyond its image. **Merging this cuts chart release \`${next}\`** from tag \`openeverest-${chart}\` (OpenEverest \`${app}\` unchanged)."
+            else
+              echo "plugin-hub's chart changed since \`${shipped}\` beyond its image, but \`${app}\` is a stable release: run *Everest Chart Release* by hand with an explicit \`chart_version\` after merging."
+            fi
+          } > impact.md
+          cat impact.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open or update the pull request
+        if: steps.lock.outputs.old != steps.lock.outputs.new
+        env:
+          OLD: ${{ steps.lock.outputs.old }}
+          NEW: ${{ steps.lock.outputs.new }}
+        run: |
+          set -euo pipefail
+          title="chore(deps): bump plugin-hub to ${NEW}"
+          pr=$(gh pr list --head "${BRANCH}" --base main --state open --json number,title --jq '.[0]')
+          if [[ -n "${pr}" && "$(jq -r .title <<< "${pr}")" == "${title}" ]]; then
+            echo "PR #$(jq -r .number <<< "${pr}") already bumps plugin-hub to ${NEW}."
+            exit 0
+          fi
+
+          body=$(cat <<EOF
+          Bumps the bundled plugin-hub from \`${OLD}\` to \`${NEW}\`: [release notes](https://github.com/openeverest/plugin-hub/releases/tag/v${NEW}).
+
+          $(cat impact.md)
+
+          Opened by the \`plugin-hub-bump\` workflow.
+          EOF
+          )
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "${BRANCH}"
+          git add "${LOCK}"
+          git commit -s -m "${title}" \
+            -m "Keeps the plugin-hub bundled with the chart current, so that its chart fixes reach a release without a manual bump."
+          git push --force origin "${BRANCH}"
+
+          if [[ -n "${pr}" ]]; then
+            gh pr edit "$(jq -r .number <<< "${pr}")" --title "${title}" --body "${body}"
+          else
+            # The label is best-effort: retry without it if the repo lacks it.
+            gh pr create --base main --head "${BRANCH}" --title "${title}" --body "${body}" --label dependencies \
+              || gh pr create --base main --head "${BRANCH}" --title "${title}" --body "${body}"
+          fi

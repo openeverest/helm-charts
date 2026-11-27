@@ -1,0 +1,98 @@
+name: Plugin-hub chart patch release
+
+# Cuts a chart-only patch release when main's Chart.lock moves the bundled
+# plugin-hub to a release whose chart changed beyond its image (templates,
+# values, annotations). Image-only plugin-hub releases need no chart release:
+# plugin-hub updates its own image in place.
+#
+# The patch is built from the latest release's tag, not from main: main may
+# carry chart changes for an OpenEverest that isn't released yet. It keeps the
+# release's OpenEverest version (appVersion) and only bumps the chart version
+# (2.0.0-dev.4 -> 2.0.0-dev.4.1). The release resolves plugin-hub's range again
+# while packaging, so it picks up the new plugin-hub.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - charts/everest/Chart.lock
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only report what would be released"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: plugin-hub-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Cut a chart patch release
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Install Helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4.3.1
+        with:
+          version: v3.17.0
+
+      - name: Plan
+        id: plan
+        run: |
+          set -euo pipefail
+          major=$(yq '.version' charts/everest/Chart.yaml | cut -d. -f1)
+          new=$(yq '.dependencies[] | select(.name == "plugin-hub") | .version' charts/everest/Chart.lock)
+          read -r chart app shipped < <(.github/scripts/latest-release.sh "${major}")
+          echo "Latest ${major}.x release: chart ${chart}, OpenEverest ${app}, plugin-hub ${shipped}. Chart.lock: plugin-hub ${new}." | tee -a "$GITHUB_STEP_SUMMARY"
+
+          if [[ -z "${new}" ]]; then
+            echo "Chart.lock bundles no plugin-hub; nothing to release." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [[ "${shipped}" != "none" ]]; then
+            if [[ "$(printf '%s\n' "${shipped}" "${new}" | sort -V | tail -1)" == "${shipped}" ]]; then
+              echo "The release already ships plugin-hub ${new} or newer; nothing to release." | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            if [[ "$(.github/scripts/plugin-hub-chart-changed.sh "${shipped}" "${new}")" == "false" ]]; then
+              echo "plugin-hub's chart only changed its image; nothing to release." | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+          fi
+
+          rc=0
+          next=$(.github/scripts/next-chart-patch-version.sh "${chart}" "${app}") || rc=$?
+          if [[ ${rc} -eq 3 ]]; then
+            echo "::warning::plugin-hub ${new} changes the chart, but OpenEverest ${app} is a stable release: run Everest Chart Release by hand with an explicit chart_version."
+            exit 0
+          fi
+          [[ ${rc} -eq 0 ]] || exit "${rc}"
+
+          echo "Release chart ${next} (OpenEverest ${app}) from tag openeverest-${chart}." | tee -a "$GITHUB_STEP_SUMMARY"
+          {
+            echo "app=${app}"
+            echo "next=${next}"
+            echo "tag=openeverest-${chart}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch the release
+        if: steps.plan.outputs.next != '' && !inputs.dry_run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APP: ${{ steps.plan.outputs.app }}
+          NEXT: ${{ steps.plan.outputs.next }}
+          TAG: ${{ steps.plan.outputs.tag }}
+        run: |
+          gh workflow run release.yaml --ref main \
+            -f version="${APP}" -f chart_version="${NEXT}" -f branch="${TAG}"
