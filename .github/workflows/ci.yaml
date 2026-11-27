@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'charts/**'
+      - 'tools/bundled-compat-check/**'
       - '.github/workflows/ci.yaml'
   push:
     branches:
@@ -11,6 +12,7 @@ on:
       - v1.x
     paths:
       - 'charts/**'
+      - 'tools/bundled-compat-check/**'
       - '.github/workflows/ci.yaml'
 
 permissions:
@@ -77,3 +79,32 @@ jobs:
 
       - name: Run helm template on everest-crds
         run: helm template everest-crds charts/everest/charts/everest-crds > /dev/null
+
+  bundled-extensions:
+    name: Bundled Extensions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: tools/bundled-compat-check/go.mod
+          cache-dependency-path: tools/bundled-compat-check/go.sum
+
+      - name: Test the check
+        working-directory: tools/bundled-compat-check
+        run: |
+          go mod tidy -diff
+          go vet ./...
+          go test -race ./...
+
+      # Chart.yaml gets its compatibility window from the CRDs at release
+      # time. Record it here too, so that a dependency bump outside the window
+      # fails its pull request rather than the next release.
+      - name: Record the compatibility window as a release does
+        run: make -C charts/everest annotate-chart VERSION="$(yq '.appVersion' charts/everest/Chart.yaml)"
+
+      - name: Check bundled extensions
+        run: make -C charts/everest check-bundled-compat

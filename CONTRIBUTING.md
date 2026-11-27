@@ -53,6 +53,7 @@ The following tools must be available in your `PATH`:
 | [`yq`](https://github.com/mikefarah/yq) ≥ 4.x | YAML patching in `prepare-chart` |
 | [`docker`](https://docs.docker.com/get-docker/) | Running `helm-docs` for doc generation |
 | [`git`](https://git-scm.com/) | Worktree-based `gh-pages` publishing |
+| [`go`](https://go.dev/doc/install) (the version in `tools/bundled-compat-check/go.mod`) | Checking the bundled extensions before `publish` |
 
 All `make` targets must be run from the `charts/everest/` directory:
 
@@ -66,16 +67,18 @@ cd charts/everest
 
 ```
 helm-charts/
-└── charts/
-    └── everest/                    ← main chart directory (work here)
-        ├── Makefile                ← all automation lives here
-        ├── Chart.yaml              ← chart name: openeverest, version & dependencies
-        ├── values.yaml             ← default values
-        ├── templates/              ← Kubernetes manifest templates
-        └── charts/
-            ├── everest-crds/       ← CRD sub-chart
-            ├── common/
-            └── pmm3/
+├── charts/
+│   └── everest/                    ← main chart directory (work here)
+│       ├── Makefile                ← all automation lives here
+│       ├── Chart.yaml              ← chart name: openeverest, version & dependencies
+│       ├── values.yaml             ← default values
+│       ├── templates/              ← Kubernetes manifest templates
+│       └── charts/
+│           ├── everest-crds/       ← CRD sub-chart
+│           ├── common/
+│           └── pmm3/
+└── tools/
+    └── bundled-compat-check/       ← release check of the bundled extensions (own Go module)
 ```
 
 The `gh-pages` branch serves the public Helm repository at:
@@ -119,7 +122,7 @@ make prepare-pr
 This will:
 - Re-run `helm dependency update` for all charts
 - Regenerate `README.md` from `README.md.gotmpl` via `helm-docs`
-- Optionally regenerate CRDs from upstream (see [Updating CRDs](#updating-crds) below)
+- Re-sync the CRDs, the controller RBAC and the built-in BackupStorageClasses from [`openeverest/openeverest`](https://github.com/openeverest/openeverest) at `OPENEVEREST_CRD_VERSION`, `main` by default (see [Updating CRDs](#updating-crds) below)
 
 Commit the resulting changes along with your feature work.
 
@@ -127,15 +130,16 @@ Commit the resulting changes along with your feature work.
 
 ## Updating CRDs
 
-If your change requires refreshing the CRDs from the upstream operator repository, run:
+If your change requires refreshing the CRDs from the [`openeverest/openeverest`](https://github.com/openeverest/openeverest) repository, run:
 
 ```bash
-make crds-gen CRD_VERSION=<tag-or-branch>
+make crds-gen OPENEVEREST_CRD_VERSION=<branch-tag-or-commit>
 make link-crds
 ```
 
-- `CRD_VERSION` defaults to `main`. Use a specific tag (e.g. `v1.14.0`) to pin to a release.
-- `crds-gen` fetches CRDs from [`openeverest/openeverest-operator`](https://github.com/openeverest/openeverest-operator) via `kustomize` (runs in Docker — no local `kustomize` install needed).
+- `OPENEVEREST_CRD_VERSION` defaults to `main`, the openeverest branch that carries v2. Pass a tag or a commit SHA to pin the sync to a release or to a reproducible point. `controller-manifests-gen` and `backupstorageclasses-gen` sync from the same ref.
+- `crds-gen` fetches the CRDs from `config/crd` in `openeverest/openeverest` via `kustomize` (runs in Docker — no local `kustomize` install needed).
+- `crds-gen` labels every CRD with `everest.percona.com/crd: "true"` and `openeverest.io/version` (= `VERSION`).
 - `link-crds` updates the symlinks in the top-level `crds/` directory.
 
 Commit the updated files in `charts/everest-crds/templates/` and `crds/`.
@@ -153,13 +157,16 @@ make release-and-publish VERSION=1.2.3
 ```
 
 This single command:
-1. Stamps `version` (= `CHART_VERSION`) and `appVersion` (= `VERSION`) in the `Chart.yaml` files (`openeverest`, `everest-crds`)
-2. Updates image references in `values.yaml`
-3. Re-pins dependency versions in `Chart.yaml`
-4. Runs `helm dependency update`
-5. Packages the chart into a `openeverest-<CHART_VERSION>.tgz`
-6. Regenerates `index.yaml` on the `gh-pages` branch (preserving prior releases)
-7. Commits and pushes `gh-pages`
+1. Labels the CRDs with `openeverest.io/version` (= `VERSION`)
+2. Stamps `version` (= `CHART_VERSION`) and `appVersion` (= `VERSION`) in the `Chart.yaml` files (`openeverest`, `everest-crds`)
+3. Updates image references in `values.yaml`
+4. Re-pins dependency versions in `Chart.yaml`
+5. Records in the `openeverest` `Chart.yaml` annotations the release (`openeverest.io/version` = `VERSION`) and the compatibility window that OpenEverest stamps on its CRDs (`openeverest.io/contract-version`, `openeverest.io/min-contract-version`, `openeverest.io/upgradable-from`). It fails when the CRDs disagree, and only warns when they carry no window
+6. Runs `helm dependency update`
+7. Checks every extension the chart bundles from an OCI registry (such as `plugin-hub`, at the version locked in `Chart.lock`) against that window, and refuses to package the chart when one was built for an OpenEverest outside it (`make check-bundled-compat`). An extension that declares no OpenEverest version only gets a warning, and a chart without a window is not checked
+8. Packages the chart into a `openeverest-<CHART_VERSION>.tgz`
+9. Regenerates `index.yaml` on the `gh-pages` branch (preserving prior releases)
+10. Commits and pushes `gh-pages`
 
 After pushing, the chart is available within minutes:
 
@@ -218,6 +225,8 @@ This does **not** call `publish` — dev builds are not pushed to the public Hel
 | `make publish VERSION=x.y.z` | Package chart and push to `gh-pages` |
 | `make release-and-publish VERSION=x.y.z` | `release` + `publish` in one step |
 | `make release-dev VERSION=x.y.z` | Dev release with `-dev` images, telemetry off |
-| `make crds-gen CRD_VERSION=<ref>` | Regenerate CRD templates from upstream operator |
+| `make annotate-chart VERSION=x.y.z` | Record the release and the CRDs' compatibility window in `Chart.yaml` annotations (part of `release`) |
+| `make check-bundled-compat` | Refuse a chart that bundles an extension outside the compatibility window in its `Chart.yaml` (part of `publish`; CI runs it on every pull request and before every release) |
+| `make crds-gen OPENEVEREST_CRD_VERSION=<ref>` | Regenerate CRD templates from `openeverest/openeverest` (default ref `main`) |
 | `make link-crds` | Refresh symlinks in `crds/` from CRD templates |
 | `make docs-gen` | Regenerate `README.md` via `helm-docs` (requires Docker) |

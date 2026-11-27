@@ -56,6 +56,14 @@ helm uninstall everest-core -n everest-system
 kubectl delete ns everest-system
 ```
 
+Notes:
+* `helm uninstall` is refused while OpenEverest still protects objects in use: `MonitoringDestination`s, `BackupStorage`s and Secrets carrying a finalizer that only the OpenEverest controller removes. Uninstalled, it would leave them, and the namespaces holding them, impossible to delete. A `pre-delete` hook Job checks this without changing anything; when it fails, its log lists the objects held:
+  ```sh
+  kubectl logs -n everest-system job/everest-controller-uninstall-check
+  ```
+  Delete those objects, or the namespaces holding them, while OpenEverest is still running, so that it releases them, then uninstall again. `everestctl uninstall` does this for the database namespaces.
+* To uninstall anyway, run `helm uninstall --no-hooks`, then remove the finalizers from the objects left by hand.
+
 ### 5. Upgrade
 
 #### 5.1 Upgrade CRDs
@@ -103,8 +111,8 @@ to the defaults built into the chart. To preserve the previously set values, you
 Alternatively, provide the full set of values, including any overrides applied during installation.
 * It is recommended to upgrade 1 minor release at a time, otherwise you may run into unexpected issues.
 * It is recommended to upgrade to the latest patch release first before upgrading to the next minor release.
-* To ensure that the upgrade happens safely, we run a pre-upgrade hook that runs a series of checks. This can be disabled by setting `upgrade.preflightChecks=false`.
-However, in doing so, a safe upgrade cannot be guaranteed.
+* The pre-upgrade checks hook (`upgrade.preflightChecks`) is disabled by default: it downloads `everestctl` from GitHub releases,
+which OpenEverest 2.x does not publish yet, so it fails every upgrade and cannot run in air-gapped clusters or under the `restricted` Pod Security Standard.
 
 ## Configuration
 
@@ -125,7 +133,7 @@ please make sure you perform the following actions before creating PR:
     make prepare-pr
     ```
 
-In case you need to update the OpenEverest Custom Resource Definitions (CRDs) after the changes in `github.com/openeverest/openeverest` repository, please run the following command:
+`make prepare-pr` also syncs the OpenEverest Custom Resource Definitions (CRDs), the controller RBAC and the built-in BackupStorageClasses from the `main` branch of the `github.com/openeverest/openeverest` repository. To sync them from another branch, a tag or a commit, run:
 ```bash
-CRD_VERSION=<branch name in openeverest/openeverest repo> make prepare-pr
+OPENEVEREST_CRD_VERSION=<branch, tag or commit in openeverest/openeverest repo> make prepare-pr
 ```

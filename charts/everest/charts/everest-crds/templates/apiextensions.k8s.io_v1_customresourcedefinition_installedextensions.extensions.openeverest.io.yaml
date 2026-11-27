@@ -3,10 +3,13 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.18.0
+    openeverest.io/contract-version: 2.0.0-alpha.1.next
+    openeverest.io/min-contract-version: 2.0.0-alpha.1
+    openeverest.io/upgradable-from: ""
   name: installedextensions.extensions.openeverest.io
   labels:
     everest.percona.com/crd: "true"
-    everest.percona.com/version: 1.14.0
+    openeverest.io/version: 2.0.0-dev.2
 spec:
   group: extensions.openeverest.io
   names:
@@ -40,7 +43,7 @@ spec:
         openAPIV3Schema:
           description: |-
             InstalledExtension is the cluster-scoped record of an installed extension
-            (a generic plugin or a spec 001 provider). It is created by
+            (a generic plugin or a provider). It is created by
             `everestctl extension install` and owned by cluster-admin.
           properties:
             apiVersion:

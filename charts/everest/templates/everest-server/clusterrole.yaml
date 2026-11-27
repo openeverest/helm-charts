@@ -12,9 +12,16 @@ rules:
   - apiGroups: [""]
     resources: ["nodes", "pods", "pods/log", "persistentvolumes"]
     verbs: ["get", "list"]
+  # Storage classes: GET /v1/clusters/{cluster}/storage-classes lists them and
+  # GET /v1/clusters/{cluster}/storage-classes/{name} gets one.
   - apiGroups: ["storage.k8s.io"]
     resources: ["storageclasses"]
-    verbs: ["list"]
+    verbs: ["get", "list"]
+  # Lifecycle events: GET /v1/clusters/{cluster}/events lists and watches them, and the
+  # server records logins and logouts.
+  - apiGroups: ["events.k8s.io"]
+    resources: ["events"]
+    verbs: ["get", "list", "watch", "create"]
   - apiGroups: ["everest.percona.com"]
     resources: ["*"]
     verbs: ["*"]

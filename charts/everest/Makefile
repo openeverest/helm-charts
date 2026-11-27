@@ -1,4 +1,5 @@
 HELM ?= helm
+GO ?= go
 
 # values to override
 IMAGE_PREFIX ?= ghcr.io/openeverest
@@ -18,8 +19,22 @@ prepare-chart:
 	yq eval -i '.server.image.repository = "$(IMAGE_PREFIX)/$(EVEREST_SERVER_IMAGE_NAME)"' values.yaml
 	yq eval -i '.telemetry = $(TELEMETRY)' values.yaml
 	yq eval -i '(.dependencies[] | select(.name == "everest-crds")).version = "${CHART_VERSION}"' Chart.yaml
+	$(MAKE) annotate-chart
 	$(MAKE) deps
 	
+
+.PHONY: annotate-chart
+annotate-chart: ## Record the core release and the compatibility window of its CRDs in Chart.yaml annotations.
+	CHART_FILE=Chart.yaml \
+	CRD_DIR=charts/everest-crds/templates \
+	VERSION=$(VERSION) \
+	bash scripts/annotate-chart.sh
+
+# The check lives in its own Go module outside this chart: the chart's module
+# is imported by OpenEverest, so it must not depend on OpenEverest itself.
+.PHONY: check-bundled-compat
+check-bundled-compat: ## Refuse a chart whose locked OCI dependencies are outside the compatibility window in its Chart.yaml annotations.
+	$(GO) run -C $(abspath $(CURDIR)/../../tools/bundled-compat-check) . -chart $(CURDIR)
 
 .PHONY: release-crds
 release-crds:
@@ -38,7 +53,7 @@ release-dev: release-crds
 release-dev: prepare-chart
 
 .PHONY: publish
-publish:
+publish: check-bundled-compat
 	git worktree remove --force $(GH_PAGES_WORKTREE) 2>/dev/null || true
 	git worktree add $(GH_PAGES_WORKTREE) gh-pages
 	$(HELM) package . -d $(GH_PAGES_WORKTREE)
@@ -80,6 +95,8 @@ test:
 .PHONY: link-crds
 link-crds:
 	@mkdir -p crds
+	@# Drop the links to CRDs that crds-gen no longer writes.
+	@find crds -maxdepth 1 -type l -name '*.yaml' -delete
 	@for crd in charts/everest-crds/templates/*.yaml; do \
 		ln -sf "../$${crd}" crds/; \
 		echo "Linked $$crd → crds/"; \
@@ -87,14 +104,13 @@ link-crds:
 
 OPENEVEREST_REPO_URL ?= https://github.com/openeverest/openeverest
 CRD_DIR ?= config/crd
-CRD_VERSION ?= main
-# FIXME: this is temporary until we have a split between v1 and v2
-OPENEVEREST_CRD_VERSION ?= release-2.0
+# The openeverest branch, tag or commit that crds-gen, controller-manifests-gen
+# and backupstorageclasses-gen sync from. main carries v2.
+OPENEVEREST_CRD_VERSION ?= main
 .PHONY: crds-gen
 crds-gen:
 	OPENEVEREST_REPO_URL=$(OPENEVEREST_REPO_URL) \
 	CRD_DIR=$(CRD_DIR) \
-	CRD_VERSION=$(CRD_VERSION) \
 	OPENEVEREST_CRD_VERSION=$(OPENEVEREST_CRD_VERSION) \
 	VERSION=$(VERSION) \
 	CRD_SUBCHART_DIR=$(PWD)/charts/everest-crds \
@@ -107,10 +123,17 @@ controller-manifests-gen: ## Sync controller RBAC manifests from the openeverest
 	OUTPUT_DIR=$(PWD)/templates/everest-controller \
 	bash $(PWD)/scripts/sync-controller-rbac.sh
 
+.PHONY: backupstorageclasses-gen
+backupstorageclasses-gen: ## Sync the built-in BackupStorageClasses from the openeverest repo into Helm templates.
+	OPENEVEREST_REPO_URL=$(OPENEVEREST_REPO_URL) \
+	OPENEVEREST_VERSION=$(OPENEVEREST_CRD_VERSION) \
+	OUTPUT_DIR=$(PWD)/templates/backupstorageclasses \
+	bash $(PWD)/scripts/sync-backupstorageclasses.sh
+
 .PHONY: prepare-pr
 prepare-pr:
 	$(MAKE) deps
 	$(MAKE) docs-gen
-	CRD_DIR=$(CRD_DIR) \
-	CRD_VERSION=$(CRD_VERSION) $(MAKE) crds-gen link-crds
+	CRD_DIR=$(CRD_DIR) $(MAKE) crds-gen link-crds
 	$(MAKE) controller-manifests-gen
+	$(MAKE) backupstorageclasses-gen

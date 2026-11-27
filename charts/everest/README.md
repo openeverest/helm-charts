@@ -56,6 +56,14 @@ helm uninstall everest-core -n everest-system
 kubectl delete ns everest-system
 ```
 
+Notes:
+* `helm uninstall` is refused while OpenEverest still protects objects in use: `MonitoringDestination`s, `BackupStorage`s and Secrets carrying a finalizer that only the OpenEverest controller removes. Uninstalled, it would leave them, and the namespaces holding them, impossible to delete. A `pre-delete` hook Job checks this without changing anything; when it fails, its log lists the objects held:
+  ```sh
+  kubectl logs -n everest-system job/everest-controller-uninstall-check
+  ```
+  Delete those objects, or the namespaces holding them, while OpenEverest is still running, so that it releases them, then uninstall again. `everestctl uninstall` does this for the database namespaces.
+* To uninstall anyway, run `helm uninstall --no-hooks`, then remove the finalizers from the objects left by hand.
+
 ### 5. Upgrade
 
 #### 5.1 Upgrade CRDs
@@ -103,8 +111,8 @@ to the defaults built into the chart. To preserve the previously set values, you
 Alternatively, provide the full set of values, including any overrides applied during installation.
 * It is recommended to upgrade 1 minor release at a time, otherwise you may run into unexpected issues.
 * It is recommended to upgrade to the latest patch release first before upgrading to the next minor release.
-* To ensure that the upgrade happens safely, we run a pre-upgrade hook that runs a series of checks. This can be disabled by setting `upgrade.preflightChecks=false`.
-However, in doing so, a safe upgrade cannot be guaranteed.
+* The pre-upgrade checks hook (`upgrade.preflightChecks`) is disabled by default: it downloads `everestctl` from GitHub releases,
+which OpenEverest 2.x does not publish yet, so it fails every upgrade and cannot run in air-gapped clusters or under the `restricted` Pod Security Standard.
 
 ## Configuration
 
@@ -112,6 +120,8 @@ The following table shows the configurable parameters of the OpenEverest chart a
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| compatibility.openshift | bool | `false` | Treat the cluster as OpenShift: pods leave runAsUser to the restricted-v2 SCC, which assigns a UID from the namespace range. Detected automatically from the SecurityContextConstraints API; set it when rendering without cluster access (helm template). |
+| controller.affinity | object | `{}` | Affinity settings for the controller pods. When empty and `controller.replicas` is above 1, the replicas prefer different nodes. |
 | controller.command | string | `"/everest-controller"` | Command to run in the controller container. |
 | controller.enabled | bool | `true` | If set, enables the Everest controller manager. |
 | controller.env | list | `[]` | Additional environment variables to pass to the controller deployment. |
@@ -122,9 +132,10 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | controller.image.tag | string | `""` | Tag for the controller image. Defaults to `server.image.tag` (or `.Chart.AppVersion`) if not set. |
 | controller.leaderElection | object | `{"enabled":true}` | Enable leader election for the controller manager. |
 | controller.metricsBindAddress | string | `"0"` | Metrics address for the controller. |
+| controller.replicas | int | `2` | Number of controller manager replicas. The controllers run on the elected leader only, while every replica serves the admission webhooks, which fail closed: with more than one replica, Backup, Restore and BackupImport creates keep working while a replica restarts. More than one replica requires `controller.leaderElection.enabled`. |
 | controller.resources | object | `{"limits":{"cpu":"500m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"64Mi"}}` | Resources to allocate for the controller container. |
 | controller.webhook.certs | object | `{"ca.crt":"","tls.crt":"","tls.key":""}` | Certificates to use for the webhook server. The values must be base64 encoded. If unset, uses self-signed certificates. |
-| controller.webhook.preserveTLSCerts | bool |  | If set to true, preserves existing TLS Certificate Secrets during upgrades. This setting is ignored if certificates are explicitly provided in controller.webhook.certs, in which case the specified certificates are used instead. This setting has no effect during installation. |
+| controller.webhook.preserveTLSCerts | bool |  | If set to true, preserves existing TLS Certificate Secrets during upgrades. This setting is ignored if certificates are explicitly provided in controller.webhook.certs, in which case the specified certificates are used instead. This setting has no effect during installation. It also has no effect under `helm template`, which is how Argo CD renders the chart: see docs/argocd.md. |
 | hooks | object | `{"image":{"pullPolicy":"IfNotPresent","repository":"ghcr.io/openeverest/openeverest-helmtools","tag":"0.0.1"},"upgradeChecks":{"image":{"repository":"","tag":""}}}` | Configuration for Helm chart hooks. |
 | hooks.image | object | `{"pullPolicy":"IfNotPresent","repository":"ghcr.io/openeverest/openeverest-helmtools","tag":"0.0.1"}` | Default image to use for the Helm chart hooks job. |
 | hooks.image.pullPolicy | string | `"IfNotPresent"` | Pull policy for the hooks image. |
@@ -138,9 +149,9 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | ingress.hosts | list | `[{"host":"chart-example.local","paths":[{"path":"/","pathType":"ImplementationSpecific"}]}]` | List of hosts and their paths for the ingress resource. |
 | ingress.ingressClassName | string | `""` | Ingress class name. This is used to specify which ingress controller should handle this ingress. |
 | ingress.tls | list | `[]` | Each entry in the list specifies a TLS certificate and the hosts it applies to. |
-| monitoringNamespace | string | `"everest-monitoring"` | Namespace where monitoring resources (e.g. VMAgent, Secrets) managed by the MonitoringConfig controller are created. Everest does not install a VictoriaMetrics operator or a monitoring stack into this namespace itself; if you want to ship metrics to PMM, install the VictoriaMetrics operator yourself (e.g. via the `pmm` chart in https://github.com/percona/percona-helm-charts) and create a MonitoringConfig pointing at it. |
 | namespaceOverride | string | `""` | Namespace override. Defaults to the value of .Release.Namespace. |
-| plugin-hub | object | `{}` | Values forwarded to the `plugin-hub` sub-chart. Refer to the upstream chart for the full list of configurable values: https://ghcr.io/openeverest/charts/plugin-hub |
+| plugin-hub | object | `{"installer":{"enabled":true}}` | Values forwarded to the `plugin-hub` sub-chart. Refer to the upstream chart for the full list of configurable values: https://ghcr.io/openeverest/charts/plugin-hub |
+| plugin-hub.installer.enabled | bool | `true` | One-click install/upgrade/uninstall of plugins and providers from the Plugin Hub UI (admins only). While enabled, the plugin-hub pod is bound to `cluster-admin` so it can install providers' CRDs and cluster roles. Opt out with `--set plugin-hub.installer.enabled=false` to keep the hub browse-only (copy-paste Helm commands). |
 | plugins | object | `{"hub":{"enabled":true}}` | Configuration for OpenEverest plugins bundled with this chart. |
 | plugins.hub | object | `{"enabled":true}` | Plugin Hub settings. |
 | plugins.hub.enabled | bool | `true` | If set, deploys the OpenEverest Plugin Hub (`plugin-hub` sub-chart) in the release namespace alongside Everest. Disable with `--set plugins.hub.enabled=false`. |
@@ -148,6 +159,7 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | pmm.enabled | bool | `false` | If set, deploys PMM2 in the release namespace. |
 | pmm3.enabled | bool | `false` | If set, deploys PMM3 in the release namespace. |
 | pmm3.pmm | object | `{"nameOverride":"pmm3"}` | PMM configuration. All PMM chart values go under this key. |
+| secretProtection.enabled | bool | `true` | Protects the Secrets that monitoring destinations and backup storages use, their credentials and CA bundles labelled `openeverest.io/definition`: the controller counts the objects using each one in annotations and holds the `openeverest.io/in-use-protection` finalizer while any does, and the `secret-in-use.openeverest.io` admission policy refuses deleting a Secret in use. Set to false to turn it off: the controller gets `--secret-protection=false` and removes its finalizer and counts from every Secret at start, and the policy binding is not installed. |
 | server.affinity | object | `{}` | Affinity settings for the server pod. |
 | server.apiRequestsRateLimit | int | `100` | Set the allowed number of requests per second. |
 | server.command | string | `"/everest-api"` | Command to run in the server container. |
@@ -192,7 +204,7 @@ The following table shows the configurable parameters of the OpenEverest chart a
 | server.topologySpreadConstraints | list | `[]` | Topology spread constraints for the server pod. |
 | telemetry | bool | `true` | If set, enabled sending telemetry information. In production release, this value is `true` by default. |
 | upgrade.crdChecks | bool | `true` | Ensures that CRDs are upgraded first (default: true). Set to false to disable. |
-| upgrade.preflightChecks | bool | `true` | Ensures that preflight checks are run before the upgrade (default: true). Set to false to disable. |
+| upgrade.preflightChecks | bool | `false` | Runs the everestctl upgrade checks in a pre-upgrade hook Job. Off by default: the hook downloads everestctl from GitHub releases, which OpenEverest 2.x does not publish yet, and it cannot run as non-root. |
 | versionMetadataURL | string | `"https://check.percona.com"` | URL of the Version Metadata Service. |
 
 ## Notice for developers
@@ -204,7 +216,7 @@ please make sure you perform the following actions before creating PR:
     make prepare-pr
     ```
 
-In case you need to update the OpenEverest Custom Resource Definitions (CRDs) after the changes in `github.com/openeverest/openeverest` repository, please run the following command:
+`make prepare-pr` also syncs the OpenEverest Custom Resource Definitions (CRDs), the controller RBAC and the built-in BackupStorageClasses from the `main` branch of the `github.com/openeverest/openeverest` repository. To sync them from another branch, a tag or a commit, run:
 ```bash
-CRD_VERSION=<branch name in openeverest/openeverest repo> make prepare-pr
+OPENEVEREST_CRD_VERSION=<branch, tag or commit in openeverest/openeverest repo> make prepare-pr
 ```

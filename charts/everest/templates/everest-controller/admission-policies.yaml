@@ -1,0 +1,245 @@
+{{- if .Values.controller.enabled }}
+# Refuses deleting a MonitoringDestination while Instances list it. The
+# controller keeps status.attachedInstances up to date, leaving out Instances
+# being deleted, and holds the monitoring.openeverest.io/in-use-protection
+# finalizer until no Instance lists the destination, those being deleted
+# included, and for a deletion admitted before the count caught up. Two
+# deletions are exempt:
+# - a repeated one of a destination already being deleted: its deletion was
+#   admitted before, and the count now states what it waits for;
+# - one in a namespace being deleted: no Instance can be added to it, and
+#   the finalizer still waits for its Instances to go.
+# Keep in sync with config/policy/monitoringdestination_in_use.yaml in the
+# openeverest repo.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: monitoringdestination-in-use.monitoring.openeverest.io
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups: ["monitoring.openeverest.io"]
+      apiVersions: ["*"]
+      operations: ["DELETE"]
+      resources: ["monitoringdestinations"]
+  variables:
+  - name: attached
+    expression: oldObject.?status.?attachedInstances.orValue(0)
+  validations:
+  - expression: >-
+      variables.attached == 0 ||
+      oldObject.metadata.?deletionTimestamp.hasValue() ||
+      namespaceObject.metadata.?deletionTimestamp.hasValue()
+    messageExpression: >-
+      'in use by ' + string(variables.attached) +
+      (variables.attached == 1 ? ' database' : ' databases') +
+      '; remove the destination from them first (kubectl get monitoringbindings -n ' +
+      oldObject.metadata.namespace + ' -l monitoring.openeverest.io/destination=' +
+      oldObject.metadata.name + ')'
+    reason: Forbidden
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: monitoringdestination-in-use.monitoring.openeverest.io
+spec:
+  policyName: monitoringdestination-in-use.monitoring.openeverest.io
+  validationActions: ["Deny"]
+---
+# Refuses deleting a Secret while objects use it. The controller writes one
+# usage count annotation per kind of referrer on every Secret it tracks,
+# leaving out referrers being deleted, and holds the
+# openeverest.io/in-use-protection finalizer only while an object uses the
+# Secret, those being deleted included.
+# - Only Secrets labelled openeverest.io/definition reach the policy; the
+#   counts are compared as strings, so it cannot fail to evaluate, and any
+#   count other than '0' refuses.
+# - A repeated deletion of a Secret already being deleted is admitted, and
+#   so is one in a namespace being deleted: the finalizer still waits for
+#   the referrers.
+# - Owner-driven deletions by the garbage collector are admitted, e.g. of a
+#   Secret an ExternalSecret owns; the finalizer still holds the Secret.
+# With secretProtection.enabled=false the binding is not installed, and the
+# controller removes its finalizer and counts from every Secret at start.
+# Keep in sync with config/policy/secret_in_use.yaml in the openeverest repo.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: secret-in-use.openeverest.io
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups: [""]
+      apiVersions: ["v1"]
+      operations: ["DELETE"]
+      resources: ["secrets"]
+    objectSelector:
+      matchExpressions:
+      - {key: openeverest.io/definition, operator: Exists}
+  variables:
+  - name: destinations
+    expression: "oldObject.metadata.?annotations[?'monitoring.openeverest.io/attached-destinations'].orValue('0')"
+  - name: storages
+    expression: "oldObject.metadata.?annotations[?'backup.openeverest.io/attached-storages'].orValue('0')"
+  - name: field
+    expression: "oldObject.metadata.labels['openeverest.io/definition'] == 'ca-bundle' ? 'spec.tls.ca.secretKeyRef.name' : 'spec.authentication.credentialsSecretRef.name'"
+  validations:
+  - expression: >-
+      (variables.destinations == '0' && variables.storages == '0') ||
+      oldObject.metadata.?deletionTimestamp.hasValue() ||
+      namespaceObject.metadata.?deletionTimestamp.hasValue() ||
+      request.userInfo.username in ['system:serviceaccount:kube-system:generic-garbage-collector', 'system:kube-controller-manager']
+    messageExpression: >-
+      'in use by ' + variables.destinations + ' monitoring destination(s) and ' + variables.storages +
+      ' backup storage(s); replace its values instead, or point them at another Secret first (kubectl get monitoringdestinations,backupstorages -n ' +
+      oldObject.metadata.namespace + ' --field-selector ' + variables.field + '=' + oldObject.metadata.name + ')'
+    reason: Forbidden
+{{- if .Values.secretProtection.enabled }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: secret-in-use.openeverest.io
+spec:
+  policyName: secret-in-use.openeverest.io
+  validationActions: ["Deny"]
+{{- end }}
+{{- end }}
+---
+# Requires get on every Secret a MonitoringDestination or BackupStorage
+# names, on CREATE and on any UPDATE that changes spec. Naming a Secret the
+# writer cannot read would let the executor use its keys, and pointing an
+# object at another endpoint while it keeps its Secret sends the credentials
+# there; core cannot tell which class parameters steer traffic, so every spec
+# change re-checks every reference, changed or not. Metadata-only updates,
+# such as core's finalizers, are admitted, and status writes use the status
+# subresource, which this policy does not match.
+#
+# For writes through the HTTP API the authorizer sees the API server's
+# ServiceAccount, which may get every Secret; the API's RBAC handlers apply
+# the same rule there with Casbin's secrets:use action.
+#
+# Both kinds name their Secrets at the same paths,
+# spec.authentication.credentialsSecretRef and spec.tls.ca.secretKeyRef.
+#
+# Rendered whatever controller.enabled says: the API server evaluates it, and
+# the CRDs it matches ship with this chart.
+# Keep in sync with config/policy/secret_reference.yaml in the openeverest
+# repo.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: secret-reference.openeverest.io
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups: ["monitoring.openeverest.io"]
+      apiVersions: ["*"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["monitoringdestinations"]
+    - apiGroups: ["backup.openeverest.io"]
+      apiVersions: ["*"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["backupstorages"]
+  validations:
+  - expression: >-
+      !object.spec.?authentication.?credentialsSecretRef.hasValue() ||
+      (oldObject != null && object.spec == oldObject.spec) ||
+      authorizer.group('').resource('secrets').namespace(object.metadata.namespace)
+      .name(object.spec.authentication.credentialsSecretRef.name).check('get').allowed()
+    messageExpression: >-
+      'you need get on Secret ' + object.spec.authentication.credentialsSecretRef.name +
+      ' to reference it or to change an object that uses it'
+    reason: Forbidden
+  - expression: >-
+      !object.spec.?tls.?ca.?secretKeyRef.hasValue() ||
+      (oldObject != null && object.spec == oldObject.spec) ||
+      authorizer.group('').resource('secrets').namespace(object.metadata.namespace)
+      .name(object.spec.tls.ca.secretKeyRef.name).check('get').allowed()
+    messageExpression: >-
+      'you need get on Secret ' + object.spec.tls.ca.secretKeyRef.name +
+      ' to reference it or to change an object that uses it'
+    reason: Forbidden
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: secret-reference.openeverest.io
+spec:
+  policyName: secret-reference.openeverest.io
+  validationActions: ["Deny"]
+---
+# Only Everest's API and controller may write lifecycle-labeled Events. Other
+# Kubernetes Events remain unaffected.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: lifecycle-event-authoring.openeverest.io
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups: ["events.k8s.io"]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["events"]
+  validations:
+  - expression: >-
+      !object.metadata.?labels[?'openeverest.io/lifecycle-event'].hasValue() ||
+      request.userInfo.username in [
+        {{ printf "system:serviceaccount:%s:everest-admin" (include "everest.namespace" .) | quote }},
+        {{ printf "system:serviceaccount:%s:everest-controller-manager" (include "everest.namespace" .) | quote }}
+      ]
+    message: only Everest services may write lifecycle events
+    reason: Forbidden
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: lifecycle-event-authoring.openeverest.io
+spec:
+  policyName: lifecycle-event-authoring.openeverest.io
+  validationActions: ["Deny"]
+---
+# Actor annotations are API-authored provenance. Preserve them on unrelated
+# writes, but do not allow clients to add or change them.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: lifecycle-actor-authoring.openeverest.io
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups: ["core.openeverest.io"]
+      apiVersions: ["*"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["instances"]
+    - apiGroups: ["backup.openeverest.io"]
+      apiVersions: ["*"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["backups", "backupimports", "restores"]
+    - apiGroups: ["monitoring.openeverest.io"]
+      apiVersions: ["*"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["monitoringdestinations"]
+  validations:
+  - expression: >-
+      (object.metadata.?annotations[?'openeverest.io/last-actor-type'].orValue('') ==
+       oldObject.?metadata.?annotations[?'openeverest.io/last-actor-type'].orValue('') &&
+       object.metadata.?annotations[?'openeverest.io/last-actor-id'].orValue('') ==
+       oldObject.?metadata.?annotations[?'openeverest.io/last-actor-id'].orValue('')) ||
+      request.userInfo.username == {{ printf "system:serviceaccount:%s:everest-admin" (include "everest.namespace" .) | quote }}
+    message: only the Everest API may set or change actor annotations
+    reason: Forbidden
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: lifecycle-actor-authoring.openeverest.io
+spec:
+  policyName: lifecycle-actor-authoring.openeverest.io
+  validationActions: ["Deny"]

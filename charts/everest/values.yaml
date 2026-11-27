@@ -17,6 +17,11 @@ hooks:
       repository: ""
       # -- Tag for the upgrade checks image. Defaults to `hooks.image.tag` if not set.
       tag: ""
+compatibility:
+  # -- Treat the cluster as OpenShift: pods leave runAsUser to the restricted-v2 SCC, which assigns a UID from the
+  # namespace range. Detected automatically from the SecurityContextConstraints API; set it when rendering without
+  # cluster access (helm template).
+  openshift: false
 # -- Namespace override. Defaults to the value of .Release.Namespace.
 namespaceOverride: ""
 # -- If set, enabled sending telemetry information.
@@ -173,6 +178,11 @@ controller:
     pullPolicy: ""
   # -- Command to run in the controller container.
   command: /everest-controller
+  # -- Number of controller manager replicas. The controllers run on the elected leader only,
+  # while every replica serves the admission webhooks, which fail closed: with more than one replica,
+  # Backup, Restore and BackupImport creates keep working while a replica restarts.
+  # More than one replica requires `controller.leaderElection.enabled`.
+  replicas: 2
   # -- Health probe address for the controller.
   healthProbeBindAddress: ":8081"
   # -- Metrics address for the controller.
@@ -194,6 +204,9 @@ controller:
   #   value: value1
   # - name: key2
   #   value: value2
+  # -- Affinity settings for the controller pods. When empty and `controller.replicas` is above 1,
+  # the replicas prefer different nodes.
+  affinity: {}
   webhook:
     # -- Certificates to use for the webhook server.
     # The values must be base64 encoded.
@@ -206,20 +219,24 @@ controller:
     # This setting is ignored if certificates are explicitly provided in controller.webhook.certs,
     # in which case the specified certificates are used instead.
     # This setting has no effect during installation.
+    # It also has no effect under `helm template`, which is how Argo CD renders the chart: see docs/argocd.md.
     # @default -- true
     preserveTLSCerts: true
 # -- URL of the Version Metadata Service.
 versionMetadataURL: "https://check.percona.com"
 upgrade:
-  # -- Ensures that preflight checks are run before the upgrade (default: true). Set to false to disable.
-  preflightChecks: true
+  # -- Runs the everestctl upgrade checks in a pre-upgrade hook Job. Off by default: the hook downloads everestctl
+  # from GitHub releases, which OpenEverest 2.x does not publish yet, and it cannot run as non-root.
+  preflightChecks: false
   # -- Ensures that CRDs are upgraded first (default: true). Set to false to disable.
   crdChecks: true
-# -- Namespace where monitoring resources (e.g. VMAgent, Secrets) managed by the MonitoringConfig controller
-# are created. Everest does not install a VictoriaMetrics operator or a monitoring stack into this namespace
-# itself; if you want to ship metrics to PMM, install the VictoriaMetrics operator yourself (e.g. via the
-# `pmm` chart in https://github.com/percona/percona-helm-charts) and create a MonitoringConfig pointing at it.
-monitoringNamespace: everest-monitoring
+secretProtection:
+  # -- Protects the Secrets that monitoring destinations and backup storages use, their credentials and CA bundles
+  # labelled `openeverest.io/definition`: the controller counts the objects using each one in annotations and holds the
+  # `openeverest.io/in-use-protection` finalizer while any does, and the `secret-in-use.openeverest.io` admission
+  # policy refuses deleting a Secret in use. Set to false to turn it off: the controller gets `--secret-protection=false`
+  # and removes its finalizer and counts from every Secret at start, and the policy binding is not installed.
+  enabled: true
 ingress:
   # -- Enable ingress for Everest server
   enabled: false
@@ -261,7 +278,14 @@ plugins:
 # -- Values forwarded to the `plugin-hub` sub-chart.
 # Refer to the upstream chart for the full list of configurable values:
 # https://ghcr.io/openeverest/charts/plugin-hub
-plugin-hub: {}
+plugin-hub:
+  installer:
+    # -- One-click install/upgrade/uninstall of plugins and providers from the
+    # Plugin Hub UI (admins only). While enabled, the plugin-hub pod is bound to
+    # `cluster-admin` so it can install providers' CRDs and cluster roles.
+    # Opt out with `--set plugin-hub.installer.enabled=false` to keep the hub
+    # browse-only (copy-paste Helm commands).
+    enabled: true
 # DO NOT CHANGE.
 # We set this to `false` to prevent the CRDs from being rendered as a template.
 # The CRDs are already installed as a part of the crds/ directory via the sub-chart.

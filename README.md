@@ -1,11 +1,9 @@
 # OpenEverest Helm Charts
 
 > [!IMPORTANT]
-> **This branch carries the chart for OpenEverest v2, a [Developer Preview](https://openeverest.io/blog/v2-developer-preview-release/) — not feature-complete and not for production.**
+> This branch (`main`) carries the chart for OpenEverest v2, progressing toward GA — not yet for production.
 >
-> The chart for **OpenEverest v1, the current released version**, is on [`v1.x`](https://github.com/openeverest/helm-charts/tree/v1.x) and still ships releases. On 18 August 2026 the two lines swapped branches: v2 moved from `v2` to `main`, and v1 moved to `v1.x`. **Both lines are still developed** — only the branch names changed.
->
-> Installing with `helm repo add openeverest` is unaffected: the published repository serves released chart versions, not branches.
+> The chart for OpenEverest v1, the current GA release, is on [`v1.x`](https://github.com/openeverest/helm-charts/tree/v1.x). After v2 GA, v1 receives bug and security fixes for 6 months — see [RELEASE.md](https://github.com/openeverest/openeverest/blob/main/RELEASE.md).
 
 This repository contains the official Helm charts for [OpenEverest](https://openeverest.io/), the open-source cloud-native database platform.
 

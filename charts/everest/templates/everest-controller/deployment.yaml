@@ -1,4 +1,8 @@
 {{- if .Values.controller.enabled }}
+{{- $replicas := int .Values.controller.replicas }}
+{{- if and (gt $replicas 1) (not .Values.controller.leaderElection.enabled) }}
+{{- fail "controller.replicas above 1 requires controller.leaderElection.enabled" }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -7,7 +11,7 @@ metadata:
   labels:
     app: everest-controller
 spec:
-  replicas: 1
+  replicas: {{ $replicas }}
   revisionHistoryLimit: 1
   selector:
     matchLabels:
@@ -22,6 +26,22 @@ spec:
       labels:
         app: everest-controller
     spec:
+      {{- with .Values.controller.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- else }}
+      {{- if gt $replicas 1 }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: everest-controller
+              topologyKey: kubernetes.io/hostname
+      {{- end }}
+      {{- end }}
       containers:
       - name: manager
         {{- $repo := default .Values.server.image.repository .Values.controller.image.repository }}
@@ -38,7 +58,11 @@ spec:
         - --metrics-bind-address={{ .Values.controller.metricsBindAddress }}
         - --health-probe-bind-address={{ .Values.controller.healthProbeBindAddress }}
         - --webhook-cert-path=/tmp/k8s-webhook-server/serving-certs
-        - --monitoring-namespace={{ .Values.monitoringNamespace }}
+        {{- /* The controller protects Secrets by default; only turning it off
+        needs the flag, so the default render suits any controller image. */}}
+        {{- if not .Values.secretProtection.enabled }}
+        - --secret-protection=false
+        {{- end }}
         ports:
         - containerPort: 8081
           name: health
@@ -80,11 +104,9 @@ spec:
       restartPolicy: Always
       securityContext:
         runAsNonRoot: true
-        # 65532 is the standard non-root UID used by distroless/nonroot images.
-        # The manager image is built FROM scratch with no USER directive, so it
-        # defaults to root (UID 0). Setting runAsUser here explicitly overrides
-        # that default to satisfy the runAsNonRoot constraint.
-        runAsUser: 65532
+        {{- include "everest.podRunAsUser" . | nindent 8 }}
+        seccompProfile:
+          type: RuntimeDefault
       serviceAccountName: everest-controller-manager
       terminationGracePeriodSeconds: 10
       volumes:

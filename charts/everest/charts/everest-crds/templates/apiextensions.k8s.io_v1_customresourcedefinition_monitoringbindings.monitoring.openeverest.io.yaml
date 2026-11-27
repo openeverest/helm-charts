@@ -3,10 +3,13 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.18.0
+    openeverest.io/contract-version: 2.0.0-alpha.1.next
+    openeverest.io/min-contract-version: 2.0.0-alpha.1
+    openeverest.io/upgradable-from: ""
   name: monitoringbindings.monitoring.openeverest.io
   labels:
     everest.percona.com/crd: "true"
-    everest.percona.com/version: 1.14.0
+    openeverest.io/version: 2.0.0-dev.2
 spec:
   group: monitoring.openeverest.io
   names:
@@ -33,6 +36,9 @@ spec:
           type: string
         - jsonPath: .status.conditions[?(@.type=="Configured")].reason
           name: Configured
+          type: string
+        - jsonPath: .status.conditions[?(@.type=="Ready")].reason
+          name: Ready
           type: string
         - jsonPath: .metadata.creationTimestamp
           name: Age
@@ -217,6 +223,33 @@ spec:
                   type: array
                   x-kubernetes-list-map-keys:
                     - type
+                  x-kubernetes-list-type: map
+                podMetadata:
+                  description: |-
+                    PodMetadata is the pod metadata the class controller of an
+                    ExtensionManaged binding requests per component, written together
+                    with Configured. provider-runtime hands the annotations allowed by
+                    the class's spec.extensionManaged.podMetadata to the provider, which
+                    renders them on the component's pods.
+                  items:
+                    description: ComponentPodMetadata is the metadata requested for one component's pods.
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        description: Annotations to set on the component's pods.
+                        maxProperties: 32
+                        type: object
+                      component:
+                        description: Component is the Instance component name.
+                        type: string
+                    required:
+                      - component
+                    type: object
+                  maxItems: 16
+                  type: array
+                  x-kubernetes-list-map-keys:
+                    - component
                   x-kubernetes-list-type: map
               type: object
           required:
