@@ -202,6 +202,15 @@ make release-and-publish VERSION=1.2.3 CHART_VERSION=1.2.4
 
 When only `VERSION` is provided, `CHART_VERSION` defaults to the same value (backward-compatible behavior).
 
+The *Everest Chart Release* workflow takes the same split: its optional `chart_version` input, and `branch` also accepts a release tag such as `openeverest-2.0.0-dev.4`.
+
+### Bundled plugin-hub
+
+The chart bundles plugin-hub at the version locked in `Chart.lock`; a release resolves `Chart.yaml`'s range again when it packages the chart.
+
+- **`plugin-hub-bump`** runs daily, on demand, or on a `repository_dispatch` of type `plugin-hub-released`. It opens (or refreshes) a `chore(deps): bump plugin-hub to X` PR on the `ci/bump-plugin-hub` branch, saying whether merging it cuts a release. It uses the `ROBOT_TOKEN` secret when present, so that the PR's CI runs.
+- **`plugin-hub-release`** runs when `Chart.lock` changes on `main`. If plugin-hub's chart changed beyond its image since the plugin-hub in the latest release on the line, it dispatches a chart-only patch release built from that release's tag: `2.0.0-dev.4` becomes `2.0.0-dev.4.1`, with the same OpenEverest. Image-only plugin-hub releases cut nothing: plugin-hub updates its own image in place. On a stable line it only warns: pick that `chart_version` by hand. Run it by hand with `dry_run` to see what it would release.
+
 ### Dev / pre-release
 
 For a dev release using `-dev` image variants and telemetry disabled:
